@@ -203,7 +203,7 @@ Dependencies within a milestone are noted per task.
        - status-to-kind mapping
        - an auth error message is readable and contains no key (3.4, 18.2)
 
-- [ ] **TASK-10: Provider clients and model metadata**
+- [x] **TASK-10: Provider clients and model metadata**
   - **Associated Acceptance Criteria**: `3.1`, `3.7`, `3.8`
   - **Concrete Steps**:
     1. `anthropic.ts`, `openai.ts` (for both the `openai` and `openai-compatible` types) and `gemini.ts` implement `Engine` (`stream`, `complete` with `json`, `listModels`, `test`) per design.md's wire-format table. That covers:
