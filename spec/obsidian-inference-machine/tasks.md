@@ -116,7 +116,7 @@ Dependencies within a milestone are noted per task.
        - the number of AI-contributed tags never exceeds `maxTags`
     7. Meet the ≥ 95% line / ≥ 90% branch target for `src/core/tags/`.
 
-- [ ] **TASK-5: Template engine adapter, variables and main prompt**
+- [x] **TASK-5: Template engine adapter, variables and main prompt**
   - **Associated Acceptance Criteria**: `5.4`, `5.5`, `6.1`, `6.2`, `6.3`, `6.4`, `7.1`, `7.2`, `7.3`, `7.4`, `21.7`
   - **Concrete Steps**:
     1. `src/core/template/knap.ts` is the only `knap` import.
