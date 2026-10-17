@@ -471,7 +471,7 @@ Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were add
        - runs on the latest Obsidian, on the minAppVersion, and under mobile emulation
     3. Add them to CI as a separate, non-blocking job at first. Make it blocking once it's stable.
 
-- [ ] **TASK-22: README, disclosure and release setup**
+- [x] **TASK-22: README, disclosure and release setup**
   - **Associated Acceptance Criteria**: `18.3`
   - **Concrete Steps**:
     1. Write the README:
