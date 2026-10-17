@@ -387,7 +387,7 @@ Dependencies within a milestone are noted per task.
     4. **Defaults sections:** output, tagging and references. **About:** the network-use disclosure (18.0.5).
     5. Covered end to end in TASK-21.
 
-- [ ] **TASK-19: Template import/export and example templates**
+- [x] **TASK-19: Template import/export and example templates**
   - **Associated Acceptance Criteria**: `20.1`, `20.2`, `20.3`, `20.4`, `20.5`, `20.6`
   - **Depends on**: TASK-2, TASK-13
   - **Concrete Steps**:

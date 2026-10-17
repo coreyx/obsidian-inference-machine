@@ -1,0 +1,54 @@
+{
+	"schemaVersion": "1",
+	"plugin": "obsidian-inference-machine",
+	"templates": [
+		{
+			"name": "Movie reference",
+			"noteNameFormat": "{{\"the title of the film the note is about, exactly as the note writes it. Leave empty if the note doesn't name a film\"}}",
+			"properties": [
+				{
+					"name": "title",
+					"value": "{{\"the title of the film the note is about, exactly as the note writes it. Leave empty if the note doesn't name a film\"}}",
+					"type": "text"
+				},
+				{
+					"name": "director",
+					"value": "{{\"the film's director or directors, separated by a comma and a space, only if the note names them. Otherwise leave empty, and never guess\"|split:\", \"|wikilink|join:\", \"}}",
+					"type": "multitext"
+				},
+				{
+					"name": "cast",
+					"value": "{{\"the actors the note mentions, separated by a comma and a space. Leave empty if it mentions none, and never add actors the note doesn't name\"|split:\", \"|wikilink|join:\", \"}}",
+					"type": "multitext"
+				},
+				{
+					"name": "genre",
+					"value": "{{\"the film's genres, separated by a comma and a space, only if the note states them. Otherwise leave empty\"}}",
+					"type": "multitext"
+				},
+				{
+					"name": "year",
+					"value": "{{\"the year the film was released, as four digits, only if the note states it. Otherwise leave empty, and never guess\"}}",
+					"type": "number"
+				},
+				{
+					"name": "categories",
+					"value": "[[Movies]]",
+					"type": "multitext"
+				},
+				{
+					"name": "created",
+					"value": "{{date}}",
+					"type": "date"
+				},
+				{
+					"name": "tags",
+					"value": "movies",
+					"type": "multitext"
+				}
+			],
+			"noteContentFormat": "## Plot\n{{\"what the note says the film is about, in two or three sentences. Use only what the note says, and leave empty if it says nothing about the plot\"}}\n\n## Notes\n{{\"the note's own thoughts and reactions about the film, as a bullet list. Leave empty if there are none\"}}",
+			"omitEmptyProperties": true
+		}
+	]
+}

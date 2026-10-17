@@ -149,3 +149,12 @@ input.im-port {
 .im-about p {
 	margin: var(--size-4-2) 0;
 }
+
+.im-hidden {
+	display: none;
+}
+
+textarea.im-import-text {
+	width: 100%;
+	font-family: var(--font-monospace);
+}

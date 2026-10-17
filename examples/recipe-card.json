@@ -1,0 +1,44 @@
+{
+	"schemaVersion": "1",
+	"plugin": "obsidian-inference-machine",
+	"templates": [
+		{
+			"name": "Recipe card",
+			"noteNameFormat": "{{\"the name of the dish, as the note writes it, or a short plain name for it if the note doesn't give one\"}}",
+			"properties": [
+				{
+					"name": "cuisine",
+					"value": "{{\"the cuisine, such as Italian or Thai, only if the note states it. Otherwise leave empty\"}}",
+					"type": "text"
+				},
+				{
+					"name": "servings",
+					"value": "{{\"how many servings the recipe makes, as a number, only if the note states it. Otherwise leave empty\"}}",
+					"type": "number"
+				},
+				{
+					"name": "source",
+					"value": "{{\"the URL or the name of the book or person the recipe came from, only if the note gives one. Otherwise leave empty\"}}",
+					"type": "text"
+				},
+				{
+					"name": "categories",
+					"value": "[[Recipes]]",
+					"type": "multitext"
+				},
+				{
+					"name": "created",
+					"value": "{{date}}",
+					"type": "date"
+				},
+				{
+					"name": "tags",
+					"value": "recipes",
+					"type": "multitext"
+				}
+			],
+			"noteContentFormat": "## Ingredients\n{{\"every ingredient the note lists, as an Obsidian checklist with one '- [ ] ' line per ingredient, keeping each quantity exactly as the note gives it. Add no ingredients the note doesn't mention\"}}\n\n## Instructions\n{{\"the steps to make the dish, as a numbered list, in the note's order, written out clearly. Add no steps the note doesn't give\"}}\n\n## Notes\n{{\"tips, variations or warnings the note gives, as a bullet list. Leave empty if there are none\"}}",
+			"omitEmptyProperties": true
+		}
+	]
+}

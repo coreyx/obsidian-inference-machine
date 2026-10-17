@@ -1,4 +1,4 @@
-import { Notice, parseYaml, Plugin, stringifyYaml } from 'obsidian';
+import { ButtonComponent, Notice, parseYaml, Plugin, stringifyYaml } from 'obsidian';
 import type { EngineConfig } from './core/schema';
 import { createEngine } from './engines/factory';
 import type { Engine } from './engines/engine';
@@ -10,6 +10,7 @@ import { RunController } from './run/run-controller';
 import { TemplateCommands } from './ui/commands';
 import { DeriveModal, type DeriveOptions } from './ui/derive-modal';
 import { InferenceMachineSettingTab } from './ui/settings-tab';
+import { ExportModal, ImportModal } from './ui/template-transfer';
 
 /** The settings API Obsidian uses internally to open a plugin's tab; it isn't in the public typings. */
 interface AppSettings {
@@ -63,6 +64,10 @@ export default class InferenceMachinePlugin extends Plugin {
 				http: obsidianHttp,
 				engineFor: (config) => this.engineFor(config),
 				newId,
+				renderTemplateTransfer: (container, refresh) => {
+					new ButtonComponent(container).setButtonText('Import').onClick(() => new ImportModal(this.app, this.store, newId, refresh).open());
+					new ButtonComponent(container).setButtonText('Export').onClick(() => new ExportModal(this.app, this.store).open());
+				},
 			}),
 		);
 	}
