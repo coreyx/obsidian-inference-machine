@@ -286,7 +286,7 @@ Dependencies within a milestone are noted per task.
        - `created` on all built-ins (15.9)
        - Comprehensive summary from a recorded response contains its sections (15.2, automated half)
 
-- [ ] **TASK-14: AI tagging request**
+- [x] **TASK-14: AI tagging request**
   - **Associated Acceptance Criteria**: `13.3`, `14.1`, `14.2`, `14.3`, `14.4`, `14.5`, `14.6`
   - **Depends on**: TASK-4, TASK-10, TASK-12
   - **Concrete Steps**:
