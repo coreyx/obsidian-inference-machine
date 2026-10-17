@@ -1,3 +1,5 @@
+import YAML from 'yaml';
+
 /**
  * A small stand-in for the `obsidian` module, which ships type declarations
  * only. Vitest aliases `obsidian` to this file (vitest.config.ts), so adapter
@@ -38,3 +40,13 @@ export const Platform = {
 	isDesktopApp: true,
 	isMobileApp: false,
 };
+
+/** Obsidian parses frontmatter with a YAML 1.2 parser; the `yaml` package stands in for it. */
+export function parseYaml(text: string): unknown {
+	return YAML.parse(text) as unknown;
+}
+
+/** Obsidian's `stringifyYaml` writes block-style YAML ending in a newline. */
+export function stringifyYaml(value: unknown): string {
+	return YAML.stringify(value);
+}

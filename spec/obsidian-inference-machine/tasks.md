@@ -136,7 +136,7 @@ Dependencies within a milestone are noted per task.
        - the default filename `Alpha - Summary` (5.5)
     6. **Filter parity (7.1):** run each first-release filter against a fixture set taken from `knap`'s compatibility fixtures, pinned to the installed `knap` version.
 
-- [ ] **TASK-6: Output assembly and filenames (core)**
+- [x] **TASK-6: Output assembly and filenames (core)**
   - **Associated Acceptance Criteria**: `8.3`, `8.6`, `8.7`, `10.3`, `10.5`, `10.6`, `10.7`, `15.8`
   - **Concrete Steps**:
     1. `stripEnclosingFence()` removes a fence only when the whole trimmed response is a single fenced block.
