@@ -10,7 +10,7 @@ See [Product](./product.md) for the problem, audience, value proposition, goals 
 
 - The popup and commands for deriving a note from a source note.
 - Inference engines for Anthropic, OpenAI, Gemini and OpenAI-compatible APIs, plus LM Studio auto-detection.
-- Templates with variables and filters, the built-in template set, and template import and export.
+- Templates with variables, filters and Web Clipper-style inline prompt variables, the built-in template set, and template import and export.
 - Output note creation and placement.
 - The tagging pipeline: merging, dedup, formats and optional AI tagging.
 
@@ -25,7 +25,7 @@ Batch processing over many notes is out of scope for this release (Q10).
 
 Built-in safe defaults never require an inference call. In the requirements, "the resolved X" means X after this resolution.
 
-**Question IDs.** A Q number in parentheses, such as (Q13), cites the question that decided that behavior. Q1–Q11 were answered in `product.md`, and Q12–Q22 were answered here (see [section 3](#3-open-questions)).
+**Question IDs.** A Q number in parentheses, such as (Q13), cites the question that decided that behavior. Q1–Q11 were answered in `product.md`, and Q12 onward are tracked here (see [section 3](#3-open-questions)).
 
 ## 2. Requirements (EARS Format)
 
@@ -81,6 +81,7 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **3.0.7 (Unwanted Behavior)**: If a template names an engine that no longer exists, then the system shall fall back to the global default and show a notice naming the missing engine.
 - **3.0.8 (Unwanted Behavior)**: If no engine is configured, then the popup shall explain that an engine is needed and link to the engine settings instead of offering to run.
 - **3.0.9 (Event-Driven)**: When the provider or LM Studio reports a model's context window, the system shall fill in the engine's context window setting automatically, and the user shall be able to edit it (Q20).
+- **3.0.10 (Ubiquitous)**: OpenAI-compatible engines shall accept an optional API key, stored like any other credential (18.0.4). When a key is set, every request to that engine shall send it as `Authorization: Bearer <key>`, including model listing and "Test". When no key is set, no `Authorization` header shall be sent (Q25).
 
 #### Acceptance Criteria
 - **3.1**: An engine of each provider type can be saved and passes "Test" against a working endpoint.
@@ -90,6 +91,7 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **3.5**: Deleting an engine that a template uses, then running that template, uses the global default and shows a notice.
 - **3.6**: A fresh install with no engines shows the "configure an engine" message in the popup.
 - **3.7**: An LM Studio engine created by detection has its context window filled in when LM Studio reports one, and the user can change it.
+- **3.8**: An OpenAI-compatible engine with an API key sends `Authorization: Bearer <key>` on generation, model listing and "Test". The same engine with no key sends no `Authorization` header.
 
 ### REQ-4: LM Studio auto-detection
 
@@ -101,19 +103,23 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **4.0.4 (Unwanted Behavior)**: If LM Studio isn't reachable, then the system shall say so and suggest starting LM Studio's local server, without creating an engine.
 - **4.0.5 (Unwanted Behavior)**: If LM Studio is reachable but has no model available, then the system shall say so and suggest loading a model.
 - **4.0.6 (State-Driven)**: While running on Obsidian mobile, the system shall hide or disable "Detect LM Studio" (see REQ-17).
+- **4.0.7 (Unwanted Behavior)**: If LM Studio answers detection with an authentication error (HTTP 401 or 403), then the system shall not report it as unreachable. It shall ask for an LM Studio API token, store it like any other credential (18.0.4), retry detection with it, and create an engine that sends it (3.0.10) (Q25).
+- **4.0.8 (Ubiquitous)**: The message shown for an LM Studio authentication error shall say where tokens are created in LM Studio (Developer → Server Settings → Manage Tokens).
 
 #### Acceptance Criteria
 - **4.1**: With LM Studio's server running and one model loaded, a single click creates a working engine. A test request succeeds with no manual entry.
 - **4.2**: With several models available, the user is offered a choice, and the loaded one is preselected.
 - **4.3**: With LM Studio closed, clicking the button shows the "start LM Studio's server" message and creates no engine.
 - **4.4**: Clicking "Detect" again when an LM Studio engine already exists updates that engine rather than creating a duplicate.
+- **4.5**: With LM Studio's "Require authentication" on, detection asks for a token. Given a valid one, it creates a working engine whose requests carry the token.
+- **4.6**: With "Require authentication" on and an invalid token, detection reports an authentication error that names where to manage tokens, not "LM Studio isn't reachable".
 
 ### REQ-5: Templates
 
 **User Story**: As a user, I want saved templates that define both the prompt and the output note, so that each kind of derived note is configured once and reused.
 
 - **5.0.1 (Ubiquitous)**: The system shall let the user create, edit, duplicate, rename and delete templates.
-- **5.0.2 (Ubiquitous)**: A template shall have a name and a prompt. It may also set:
+- **5.0.2 (Ubiquitous)**: A template shall have a name, and a main prompt, at least one inline prompt variable (REQ-21), or both. It may also set:
   - a filename pattern
   - frontmatter properties, whose values may contain variables
   - a body wrapper that places the AI output (for example, via an `{{output}}` variable)
@@ -122,6 +128,7 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
   - an engine
   - "Skip preview"
   - the references heading settings (REQ-10)
+  - a prompt context for inline prompt variables (REQ-21)
 - **5.0.3 (Ubiquitous)**: The system shall resolve every template setting the template leaves unset through the global config, and then the built-in safe default.
 - **5.0.4 (Ubiquitous)**: The built-in safe defaults shall be (Q17):
   - output location next to the source note
@@ -206,7 +213,7 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 
 **User Story**: As a user, I want to review and edit the generated note before it's saved, so that nothing lands in my vault that I didn't accept.
 
-- **9.0.1 (Event-Driven)**: When a run completes, the system shall show the full output note in an editor large enough to read and edit a full note. The output note is the frontmatter, including the final tags, plus the body.
+- **9.0.1 (Event-Driven)**: When a run completes, the system shall show the full output note in an editor large enough to read and edit a full note. The output note is the frontmatter, including the final tags and any inline prompt responses (REQ-21), plus the body.
 - **9.0.2 (Event-Driven)**: When the user saves from the preview, the system shall create the note from the edited content.
 - **9.0.3 (Event-Driven)**: When the user discards from the preview, the system shall create no note.
 - **9.0.4 (Where)**: Where the resolved template has "Skip preview" enabled, the system shall create the note directly after the run, without the preview (Q6).
@@ -342,6 +349,9 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **15.0.3 (Ubiquitous)**: The system shall let the user run a built-in template unchanged, or duplicate it into an editable user template.
 - **15.0.4 (Event-Driven)**: When a release updates a built-in template, the system shall update the user's copy only if the user hasn't edited it.
 - **15.0.5 (Ubiquitous)**: Built-in templates shall rely only on built-in safe defaults for any setting they don't set themselves, so that they need no configuration beyond an engine.
+- **15.0.6 (Where)**: Where the source note's frontmatter has `source`, `author` or `published`, as Web Clipper clippings do, the Literature note built-in shall carry those properties into the output note. They're typed as Web Clipper types them: `source` as text, `author` as a list, `published` as a date (Q26).
+- **15.0.7 (Ubiquitous)**: Every built-in template shall add a `created` property set to the current date (Q26).
+- **15.0.8 (Ubiquitous)**: Built-in templates shall leave out any property whose value resolves to empty, rather than writing it blank (Q26).
 
 #### Acceptance Criteria
 - **15.1**: A fresh install with one engine configured lists all five built-in templates, and each runs successfully on a sample note.
@@ -350,12 +360,15 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **15.4**: Duplicating a built-in creates an editable copy, and the built-in stays available.
 - **15.5**: After an update ships a new version of a built-in, an unedited copy shows the new prompt and an edited copy keeps the user's prompt.
 - **15.6**: Flashcards output is lines of `Question::Answer`, and the note has the `flashcards` tag.
+- **15.7**: Running Literature note on a Web Clipper clipping with `source`, `author: "[[Ada Lovelace]]"` and `published: 2026-03-01` produces a note with the same three properties and their types.
+- **15.8**: Running Literature note on a note without those properties produces no empty `source`, `author` or `published` properties.
+- **15.9**: Every built-in's output has a `created` property with the run's date.
 
 ### REQ-16: Long notes
 
 **User Story**: As a user, I want a warning before sending a note that's too long for the model, so that I don't waste a request or get a silently cut result.
 
-- **16.0.1 (Event-Driven)**: When the user runs, the system shall estimate the request's size and compare it with the resolved engine's context window (Q20).
+- **16.0.1 (Event-Driven)**: When the user runs, the system shall estimate the size of each request the run will send (the main prompt and the inline prompt request, REQ-21) and compare each with the resolved engine's context window (Q20).
 - **16.0.2 (Unwanted Behavior)**: If the estimate is over the context window, then the system shall warn before sending, show the estimate and the limit, and let the user continue or cancel.
 - **16.0.3 (Ubiquitous)**: The system shall never shorten the note's content silently.
 - **16.0.4 (Unwanted Behavior)**: If the engine's context window is unknown, then the system shall send without a warning and say in the engine settings that it can't warn for that engine.
@@ -415,20 +428,48 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **20.0.4 (Unwanted Behavior)**: If an imported template has the same name as an existing one, then the system shall add a number to the imported template's name rather than overwrite.
 - **20.0.5 (Unwanted Behavior)**: If an imported file isn't a valid template file, then the system shall reject it with a plain-language reason and change nothing.
 - **20.0.6 (Unwanted Behavior)**: If an imported template names an engine that doesn't exist, then the system shall import it anyway and resolve the engine as in 3.0.7.
+- **20.0.7 (Ubiquitous)**: The project shall publish **Recipe card**, **Book reference** and **Movie reference** as importable example template files in the repository and documentation. They're adapted from Web Clipper's Recipes, Goodreads and IMDB/Letterboxd templates and use inline prompt variables (REQ-21). They are not built-in templates (Q27).
+- **20.0.8 (Ubiquitous)**: The example templates' prompts shall tell the model to leave a property empty when the source note doesn't state it, rather than guess, and they shall leave out empty properties (as in 15.0.8).
 
 #### Acceptance Criteria
 - **20.1**: Exporting a template and importing the file into a fresh vault gives an identical template.
 - **20.2**: An exported file contains no API key, even when the template's engine has one.
 - **20.3**: Importing a template named "Summary" when "Summary" exists creates "Summary 1".
 - **20.4**: Importing a malformed file shows an error, and the template list is unchanged.
+- **20.5**: Each example template file imports without errors and runs on a matching sample note: a rough recipe, a note about a book, a note about a film.
+- **20.6**: Running Book reference on a note that names a book's title and author but not its year produces `title` and `author` properties and no `year` property.
+
+### REQ-21: Inline prompt variables
+
+**User Story**: As a template author, I want to embed small prompts directly in a template's properties, filename or body, as Web Clipper's Interpreter allows, so that one run can fill individual fields (such as a `description` property) as well as, or instead of, producing a whole note (Q24).
+
+- **21.0.1 (Ubiquitous)**: The system shall recognize inline prompt variables written as `{{"prompt text"}}`, optionally followed by filters (`{{"prompt text"|filter}}`). They may appear in property values, the filename pattern and the body wrapper, following Web Clipper's Interpreter syntax.
+- **21.0.2 (Event-Driven)**: When a run's template contains inline prompt variables, the system shall answer all of them in one request to the resolved engine, separate from the main prompt's request. It shall send the template's resolved prompt context with that request.
+- **21.0.3 (Ubiquitous)**: The prompt context shall be a template setting that may use variables and filters (REQ-6, REQ-7). It defaults to the source note's filename and full contents, so that it matches what the main prompt receives (5.0.5).
+- **21.0.4 (Ubiquitous)**: The system shall apply any filters on an inline prompt variable to that prompt's response before placing it.
+- **21.0.5 (State-Driven)**: While a template has no main prompt, the system shall send no main generation request, and the AI output variable (6.0.2) shall be empty.
+- **21.0.6 (Unwanted Behavior)**: If the inline prompt request fails, or its response lacks an answer for a prompt, then the system shall resolve each unanswered variable to an empty string, show a notice naming them, and still produce the note.
+- **21.0.7 (Unwanted Behavior)**: If an inline prompt variable appears inside the main prompt or the prompt context, then the system shall flag it as an error in the template editor, and at run time shall treat it as literal text.
+- **21.0.8 (Ubiquitous)**: A template without inline prompt variables shall cause no inline prompt request, so the built-in safe defaults still need no inference beyond the main prompt (5.0.4).
+- **21.0.9 (Ubiquitous)**: Inline prompts in property values shall go through the same rules as other property values, including the tag pipeline when they fill `tags` (REQ-11 to REQ-14).
+
+#### Acceptance Criteria
+- **21.1**: A template with property `description: {{"a one-sentence description"}}` produces a note whose `description` holds the engine's answer.
+- **21.2**: A template with three inline prompts sends exactly one inline prompt request, whatever the number of prompts.
+- **21.3**: `{{"three key phrases"|lower}}` places the response in lowercase.
+- **21.4**: A template with only inline prompts and no main prompt sends no main generation request, and its note is built from the body wrapper and properties alone.
+- **21.5**: Changing a template's prompt context to `{{body}}` sends only the note body, without frontmatter, with the inline prompt request.
+- **21.6**: When a fixture engine omits the answer to one of two prompts, that variable is empty, a notice names it, and the other prompt's answer is placed.
+- **21.7**: `{{"summarize"}}` written inside the main prompt is flagged in the template editor.
+- **21.8**: A template without inline prompts sends no inline prompt request.
 
 ## 3. Open Questions
 
-Each question has a stable ID, continuing from `product.md`. When a question is answered, its ID is retired and never reused.
+Each question has a stable ID, continuing from `product.md`. When a question is answered, its ID is retired and never reused. Q23–Q25 came from the `tech.md` review, and Q26–Q27 from the [Web Clipper template findings](../../analysis/web-clipper-templates/findings.md).
 
-There are no open questions right now. The next new question is Q23.
+There are no open questions right now.
 
-**Answered here** (all accepted as recommended):
+**Answered:**
 
 | ID | Question | Decision | Where |
 |---|---|---|---|
@@ -443,3 +484,10 @@ There are no open questions right now. The next new question is Q23.
 | Q20 | Context window source | Per-engine setting, auto-filled where reported | 3.0.9, REQ-16 |
 | Q21 | Per-template commands | One "Derive with <template>" command each | 1.0.3 |
 | Q22 | Streaming into the preview | Yes, where supported; cancelling discards the partial output | 8.0.3, 8.0.4 |
+| Q23 | Importing Web Clipper templates | No. Every reviewed template depends on web-page variables that a vault note doesn't have ([findings](../../analysis/web-clipper-templates/findings.md)) | — |
+| Q24 | Web Clipper-style inline prompt variables | Yes | REQ-21 |
+| Q25 | API keys for OpenAI-compatible engines and LM Studio | Optional Bearer key; LM Studio detection handles authentication | 3.0.10, 4.0.7, 4.0.8 |
+| Q26 | Clipping-aware built-in templates | Literature note carries `source`, `author` and `published` over; every built-in adds `created`; empty properties are left out | 15.0.6–15.0.8 |
+| Q27 | Example templates adapted from Web Clipper | Recipe card, Book reference and Movie reference ship as importable examples, not built-ins | 20.0.7, 20.0.8 |
+
+The next new question is Q28.

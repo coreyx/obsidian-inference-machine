@@ -108,6 +108,8 @@ These are the product-level decisions. The detailed behavior lives in [Requireme
 
 - **A template defines the whole output note**, not just the prompt. Settings resolve template → global config → built-in safe defaults, and those defaults never need an inference call. (REQ-5)
 - **Web Clipper-style variables and filters**, so Web Clipper users feel at home. (REQ-6, REQ-7; Q9)
+- **Web Clipper-style inline prompts.** Small prompts such as `{{"a one-sentence description"}}` can sit inside a template's properties, filename or body, and they can supplement or replace the main prompt. All of them are answered in one request. (REQ-21; Q24)
+- **Optional API keys for OpenAI-compatible engines**, including LM Studio servers that require authentication. (REQ-3, REQ-4; Q25)
 - **Several engines, one global default.** A template can pick an engine, and the popup can override it for a single run. (REQ-3; Q5)
 - **Preview and edit before saving.** The editor is big enough for a full note, and trusted templates can skip it. (REQ-9; Q6)
 - **Output never overwrites anything.** New notes link back to their source under a configurable references heading (default `# References`) and open when created. (REQ-10; Q7, Q8)
