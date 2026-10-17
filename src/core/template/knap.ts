@@ -309,3 +309,6 @@ export function diagnose(template: string, field: TemplateField): Diagnostic[] {
 	});
 	return diagnostics.sort((a, b) => a.line - b.line || a.column - b.column);
 }
+
+/** knap's CodeMirror stream parser, for the template editor's highlighting (re-exported so this stays the one knap import). */
+export { knapStreamParser } from 'knap/codemirror';

@@ -4,11 +4,12 @@ import { createEngine } from './engines/factory';
 import type { Engine } from './engines/engine';
 import { obsidianHttp, resetStreamingBlocked } from './engines/transport';
 import { Secrets } from './obsidian/secrets';
-import { SettingsStore } from './obsidian/settings-store';
+import { newId, SettingsStore } from './obsidian/settings-store';
 import { VaultTagIndex } from './obsidian/tag-index';
 import { RunController } from './run/run-controller';
 import { TemplateCommands } from './ui/commands';
 import { DeriveModal, type DeriveOptions } from './ui/derive-modal';
+import { InferenceMachineSettingTab } from './ui/settings-tab';
 
 /** The settings API Obsidian uses internally to open a plugin's tab; it isn't in the public typings. */
 interface AppSettings {
@@ -53,6 +54,17 @@ export default class InferenceMachinePlugin extends Plugin {
 		const templateCommands = new TemplateCommands(this, (templateId) => this.openDerive({ templateId }));
 		templateCommands.sync(this.store.data.templates);
 		this.register(this.store.onChange((data) => templateCommands.sync(data.templates)));
+
+		this.addSettingTab(
+			new InferenceMachineSettingTab({
+				app: this.app,
+				plugin: this,
+				store: this.store,
+				http: obsidianHttp,
+				engineFor: (config) => this.engineFor(config),
+				newId,
+			}),
+		);
 	}
 
 	/** Cancels any run in flight; everything registered through the Plugin API is cleaned up by Obsidian. */

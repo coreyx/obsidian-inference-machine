@@ -89,3 +89,63 @@
 .inference-machine-modal input:focus-visible {
 	box-shadow: 0 0 0 2px var(--interactive-accent);
 }
+
+/* Template editor (6.0.4, 21.0.7): scrolling form, CodeMirror fields, problem lists. */
+.inference-machine-modal.im-template-editor .im-editor-scroll {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	padding-inline-end: var(--size-4-2);
+}
+
+.inference-machine-modal .im-field-setting {
+	border-bottom: none;
+	padding-bottom: var(--size-4-1);
+}
+
+.inference-machine-modal .im-field {
+	margin-bottom: var(--size-4-3);
+}
+
+.inference-machine-modal .im-template-field .cm-editor {
+	min-height: 6em;
+}
+
+.inference-machine-modal .im-template-field.is-compact .cm-editor {
+	min-height: auto;
+}
+
+.inference-machine-modal .im-diagnostics {
+	margin: var(--size-4-1) 0 0;
+	padding-inline-start: var(--size-4-4);
+	font-size: var(--font-ui-smaller);
+}
+
+.inference-machine-modal .im-diagnostics:empty {
+	display: none;
+}
+
+.inference-machine-modal .im-diagnostics .is-error {
+	color: var(--text-error);
+}
+
+.inference-machine-modal .im-diagnostics .is-warning {
+	color: var(--text-warning);
+}
+
+.inference-machine-modal input.im-count {
+	width: 5em;
+}
+
+.inference-machine-settings-modal .im-error {
+	margin: var(--size-4-2) 0;
+	color: var(--text-error);
+}
+
+input.im-port {
+	width: 6em;
+}
+
+.im-about p {
+	margin: var(--size-4-2) 0;
+}

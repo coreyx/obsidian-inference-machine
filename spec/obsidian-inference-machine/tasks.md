@@ -366,7 +366,7 @@ Dependencies within a milestone are noted per task.
     3. When templates change, re-sync: `removeCommand` for removed or renamed templates, and `addCommand` for new or renamed ones (1.4).
     4. Unit-test the sync logic against the test double. End-to-end test in TASK-21.
 
-- [ ] **TASK-18: Settings tab and template editor**
+- [x] **TASK-18: Settings tab and template editor**
   - **Associated Acceptance Criteria**: `3.1`, `3.2`, `3.4`, `3.5`, `3.7`, `5.1`, `6.4`, `16.3`, `17.2`, `21.7`
   - **Depends on**: TASK-10, TASK-11, TASK-13
   - **Concrete Steps**:

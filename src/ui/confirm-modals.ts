@@ -89,3 +89,37 @@ export function askCollision(app: App, takenPath: string): Promise<CollisionChoi
 		modal.open();
 	});
 }
+
+/** Asks the user to confirm an action that can't be undone, such as deleting an engine or template. */
+export function confirmAction(app: App, title: string, message: string, action: string): Promise<boolean> {
+	return new Promise((resolve) => {
+		let answered = false;
+		const answer = (value: boolean) => {
+			if (answered) return;
+			answered = true;
+			resolve(value);
+		};
+		const modal = new Modal(app);
+		modal.setTitle(title);
+		modal.contentEl.createEl('p', { text: message });
+		new Setting(modal.contentEl)
+			.addButton((b) =>
+				b.setButtonText('Cancel').onClick(() => {
+					answer(false);
+					modal.close();
+				}),
+			)
+			.addButton((b) =>
+				b
+					.setButtonText(action)
+					// Obsidian's warning style. setDestructive() needs 1.13; the plugin supports 1.11.4.
+					.then((button) => button.buttonEl.addClass('mod-warning'))
+					.onClick(() => {
+						answer(true);
+						modal.close();
+					}),
+			);
+		modal.onClose = () => answer(false);
+		modal.open();
+	});
+}
