@@ -418,7 +418,7 @@ Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were add
        - each example imports and renders against a fixture engine on sample notes (20.5)
        - Book reference with a missing year gives no `year` property (20.6, automated half)
 
-- [ ] **TASK-24: Raise minAppVersion to 1.13.4 and adopt declarative settings**
+- [x] **TASK-24: Raise minAppVersion to 1.13.4 and adopt declarative settings**
   - **Associated Acceptance Criteria**: none (platform upgrade, so the plugin's settings appear in Obsidian's settings search)
   - **Depends on**: TASK-18, TASK-19
   - **Concrete Steps**:

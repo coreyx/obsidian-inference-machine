@@ -112,8 +112,7 @@ export function confirmAction(app: App, title: string, message: string, action: 
 			.addButton((b) =>
 				b
 					.setButtonText(action)
-					// Obsidian's warning style. setDestructive() needs 1.13; the plugin supports 1.11.4.
-					.then((button) => button.buttonEl.addClass('mod-warning'))
+					.setDestructive()
 					.onClick(() => {
 						answer(true);
 						modal.close();

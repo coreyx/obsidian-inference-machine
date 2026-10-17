@@ -2,7 +2,7 @@
 	"id": "inference-machine",
 	"name": "Inference Machine",
 	"version": "0.1.0",
-	"minAppVersion": "1.11.4",
+	"minAppVersion": "1.13.4",
 	"description": "Derive a new note from an existing one with an AI model, using reusable templates, engines and tagging rules.",
 	"author": "Corey Struzan",
 	"authorUrl": "https://github.com/coreyx",
