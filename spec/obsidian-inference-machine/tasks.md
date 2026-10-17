@@ -90,7 +90,7 @@ Dependencies within a milestone are noted per task.
 
 **Done when:** Every pure rule (tags, templates, output, inline prompts, size estimate) is implemented and unit-tested to the coverage targets.
 
-- [ ] **TASK-4: Tag pipeline (core)**
+- [x] **TASK-4: Tag pipeline (core)**
   - **Associated Acceptance Criteria**: `11.1`, `11.2`, `11.3`, `12.1`, `12.2`, `12.3`, `12.4`, `12.5`, `13.1`, `13.2`, `13.4`, `13.5`, `13.6`, `14.2`, `14.3`, `14.5`
   - **Concrete Steps**:
     1. `normalize.ts`: `tagKey()` as in design decision 7, splitting on `/ - _`, whitespace and lower-to-upper case boundaries, with digit runs kept attached to their letters.
