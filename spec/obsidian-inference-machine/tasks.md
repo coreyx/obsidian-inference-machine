@@ -175,7 +175,7 @@ Dependencies within a milestone are noted per task.
        - a custom context of `{{body}}` excludes the frontmatter (21.5)
        - a parser corpus of malformed responses: trailing text, unescaped quotes and newlines, code-fenced JSON, missing keys
 
-- [ ] **TASK-8: Token estimate (core)**
+- [x] **TASK-8: Token estimate (core)**
   - **Associated Acceptance Criteria**: `16.1` (the estimate half; the modal is in TASK-16)
   - **Concrete Steps**:
     1. `estimateTokens(text) = ceil(chars / 3.5)`.
