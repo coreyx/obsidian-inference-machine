@@ -132,6 +132,11 @@ describe('upsertLmStudioEngine', () => {
 		expect(existing.model).toBe('old');
 	});
 
+	it('numbers a new engine name when "LM Studio" is taken, since names must be unique', () => {
+		const other: EngineConfig = { id: 'x', name: 'LM Studio', provider: 'openai-compatible', model: 'm', lmStudio: { port: 4321 } };
+		expect(upsertLmStudioEngine([other], choice).engine.name).toBe('LM Studio 1');
+	});
+
 	it('keeps a context window the user typed, and clears a stale reported one', () => {
 		const userSet: EngineConfig = { id: 'lms', name: 'L', provider: 'openai-compatible', model: 'm', contextWindow: 4000, contextWindowSource: 'user', lmStudio: { port: 1234 } };
 		expect(upsertLmStudioEngine([userSet], choice).engine.contextWindow).toBe(4000);

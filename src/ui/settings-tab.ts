@@ -47,9 +47,22 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 		// and the definitions are computed ahead of time, so rebuild them when settings change.
 		ctx.plugin.register(
 			ctx.store.onChange(() => {
-				if (!this.savingControl) this.update();
+				if (!this.savingControl) this.refresh();
 			}),
 		);
+	}
+
+	/**
+	 * Rebuilds the tab after engines, templates or other definitions change,
+	 * keeping the scroll position: a full rebuild otherwise jumps back to the
+	 * top whenever a button is pressed.
+	 */
+	private refresh(): void {
+		const scroller = this.containerEl;
+		const top = scroller.scrollTop;
+		this.update();
+		scroller.scrollTop = top;
+		window.requestAnimationFrame(() => (scroller.scrollTop = top));
 	}
 
 	private get settings(): GlobalSettings {
@@ -165,7 +178,7 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 			type: 'list',
 			heading: 'Engines',
 			emptyState: 'No engines yet. Add one to start deriving notes.',
-			addItem: { name: 'Add engine', action: () => new EngineModal(this.ctx, undefined, () => this.update()).open() },
+			addItem: { name: 'Add engine', action: () => new EngineModal(this.ctx, undefined, () => this.refresh()).open() },
 			onDelete: (index) => void this.deleteEngine(engines[index]),
 			items: engines.map((engine): SettingGroupItem => {
 				const isDefault = engine.id === store.data.defaultEngineId;
@@ -194,7 +207,7 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 							setting.addButton((b) =>
 								b.setButtonText('Make default').onClick(async () => {
 									await store.update((data) => (data.defaultEngineId = engine.id));
-									this.update();
+									this.refresh();
 								}),
 							);
 						}
@@ -202,7 +215,7 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 							b
 								.setIcon('pencil')
 								.setTooltip('Edit')
-								.onClick(() => new EngineModal(this.ctx, engine, () => this.update()).open()),
+								.onClick(() => new EngineModal(this.ctx, engine, () => this.refresh()).open()),
 						);
 					},
 				};
@@ -225,7 +238,7 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 				});
 			}
 		}
-		this.update();
+		this.refresh();
 	}
 
 	private lmStudioGroup(): SettingDefinitionItem {
@@ -267,7 +280,7 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 									await this.ctx.store.update((data) => (data.globalSettings.lmStudioPort = port));
 									const outcome = await runLmStudioDetection({ app: this.app, http: this.ctx.http, store: this.ctx.store }, port);
 									this.detectMessage = outcome.message;
-									this.update();
+									this.refresh();
 								}),
 							);
 					},
@@ -287,7 +300,7 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 			emptyState: 'No templates. Create one, or restore the built-in templates.',
 			addItem: {
 				name: 'New template',
-				action: () => new TemplateEditorModal(this.app, store, { id: this.ctx.newId(), name: 'New template', prompt: '' }, () => this.update()).open(),
+				action: () => new TemplateEditorModal(this.app, store, { id: this.ctx.newId(), name: 'New template', prompt: '' }, () => this.refresh()).open(),
 			},
 			onDelete: (index) => void this.deleteTemplate(index),
 			items: templates.map((template): SettingGroupItem => {
@@ -298,7 +311,7 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 					desc: details,
 					render: (setting) => {
 						setting
-							.addButton((b) => b.setButtonText('Edit').onClick(() => new TemplateEditorModal(this.app, store, template, () => this.update()).open()))
+							.addButton((b) => b.setButtonText('Edit').onClick(() => new TemplateEditorModal(this.app, store, template, () => this.refresh()).open()))
 							.addExtraButton((b) =>
 								b
 									.setIcon('copy')
@@ -308,7 +321,7 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 										await store.update((data) => {
 											data.templates.push(duplicateTemplate(template, this.ctx.newId(), data.templates.map((t) => t.name)));
 										});
-										this.update();
+										this.refresh();
 									}),
 							);
 					},
@@ -325,7 +338,7 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 				await this.ctx.store.update((data) => (data.templates = data.templates.filter((t) => t.id !== template.id)));
 			}
 		}
-		this.update();
+		this.refresh();
 	}
 
 	private templateActions(): SettingDefinitionItem {
@@ -346,10 +359,10 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 									restored = result.restored;
 								});
 								new Notice(restored.length === 0 ? 'All built-in templates are already here.' : `Restored: ${restored.join(', ')}.`);
-								this.update();
+								this.refresh();
 							}),
 						);
-						this.ctx.renderTemplateTransfer?.(setting.controlEl, () => this.update());
+						this.ctx.renderTemplateTransfer?.(setting.controlEl, () => this.refresh());
 					},
 				},
 			],

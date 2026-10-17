@@ -1,4 +1,5 @@
 import type { EngineConfig } from '../core/schema';
+import { uniqueName } from '../core/templates';
 import { dig, list } from './base';
 import type { ModelInfo } from './engine';
 import type { Http, HttpResponse } from './transport';
@@ -113,13 +114,21 @@ export interface DetectChoice {
  * Creates the LM Studio engine, or updates the one detection made before
  * for the same port, so detecting twice never adds a duplicate (4.4). A
  * context window the user typed in is kept; a reported one is refreshed (3.7).
+ * A new engine's name is numbered if "LM Studio" is taken, since engine
+ * names must be unique.
  */
 export function upsertLmStudioEngine(engines: EngineConfig[], choice: DetectChoice): { engines: EngineConfig[]; engine: EngineConfig; created: boolean } {
 	const index = engines.findIndex((engine) => engine.lmStudio?.port === choice.port);
 	const existing = index === -1 ? undefined : engines[index];
 	const engine: EngineConfig = existing
 		? { ...existing }
-		: { id: choice.newId, name: 'LM Studio', provider: 'openai-compatible', model: choice.model.id, lmStudio: { port: choice.port } };
+		: {
+				id: choice.newId,
+				name: uniqueName('LM Studio', engines.map((e) => e.name)),
+				provider: 'openai-compatible',
+				model: choice.model.id,
+				lmStudio: { port: choice.port },
+			};
 	engine.baseUrl = choice.baseUrl;
 	engine.model = choice.model.id;
 	if (choice.secretId !== undefined) engine.secretId = choice.secretId;
