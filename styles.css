@@ -1,1 +1,91 @@
-/* Inference Machine styles. Theme variables only (19.0.1). */
+/*
+ * Inference Machine. Theme variables only, so the popup and settings match
+ * light, dark and community themes (19.0.1).
+ */
+
+.inference-machine-modal {
+	width: min(640px, 92vw);
+}
+
+/* Running and Preview need room to read and edit a whole note (REQ-9). */
+.inference-machine-modal.is-large {
+	width: 90vw;
+	max-width: 1400px;
+	height: 90vh;
+}
+
+.inference-machine-modal.is-large .modal-content {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	flex: 1;
+}
+
+/* On mobile the popup takes the whole screen (REQ-17). */
+.inference-machine-modal.im-mobile,
+.inference-machine-modal.im-mobile.is-large {
+	width: 100vw;
+	max-width: none;
+	height: 100%;
+	max-height: none;
+	border-radius: 0;
+}
+
+.inference-machine-modal .im-editor {
+	flex: 1;
+	min-height: 12em;
+	overflow: auto;
+	border: var(--border-width) solid var(--background-modifier-border);
+	border-radius: var(--radius-s);
+	padding: 0 var(--size-4-2);
+}
+
+.inference-machine-modal .im-editor .cm-editor {
+	height: 100%;
+}
+
+.inference-machine-modal .im-status {
+	margin: 0 0 var(--size-4-2);
+	padding-inline-start: var(--size-4-4);
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+
+.inference-machine-modal .im-path {
+	margin: 0 0 var(--size-4-2);
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+
+.inference-machine-modal .im-warnings {
+	margin-bottom: var(--size-4-2);
+	padding: var(--size-4-1) var(--size-4-3);
+	border-radius: var(--radius-s);
+	background-color: rgba(var(--color-yellow-rgb), 0.1);
+	color: var(--text-normal);
+	font-size: var(--font-ui-small);
+}
+
+.inference-machine-modal .im-warnings ul {
+	margin: var(--size-4-1) 0;
+	padding-inline-start: var(--size-4-4);
+}
+
+.inference-machine-modal .im-error {
+	margin: var(--size-4-2) 0;
+	padding: var(--size-4-1) var(--size-4-3);
+	border-radius: var(--radius-s);
+	background-color: rgba(var(--color-red-rgb), 0.1);
+	color: var(--text-error);
+}
+
+.inference-machine-modal .im-error p {
+	margin: var(--size-4-1) 0;
+}
+
+/* Visible keyboard focus on every popup control (19.0.2). */
+.inference-machine-modal button:focus-visible,
+.inference-machine-modal select:focus-visible,
+.inference-machine-modal input:focus-visible {
+	box-shadow: 0 0 0 2px var(--interactive-accent);
+}

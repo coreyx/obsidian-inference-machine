@@ -336,7 +336,7 @@ Dependencies within a milestone are noted per task.
 
 **Done when:** A user can derive a note from the ribbon or a command, and manage engines and templates in settings.
 
-- [ ] **TASK-16: Derive modal (popup)**
+- [x] **TASK-16: Derive modal (popup)**
   - **Associated Acceptance Criteria**: `1.5`, `2.1`, `2.2`, `2.3`, `3.3`, `3.6`, `8.1`, `8.5`, `9.1`, `9.2`, `9.3`, `16.2`, `18.1`, `19.1`, `19.2`, `19.3`
   - **Depends on**: TASK-15
   - **Concrete Steps**:
