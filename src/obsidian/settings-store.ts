@@ -105,6 +105,7 @@ export interface DataHost {
 export class SettingsStore {
 	private current: PluginData = defaultPluginData();
 	private readOnly = false;
+	private readonly listeners = new Set<(data: PluginData) => void>();
 
 	constructor(
 		private readonly host: DataHost,
@@ -125,10 +126,20 @@ export class SettingsStore {
 		return result.warnings;
 	}
 
+	/**
+	 * Calls `listener` after every save, such as when templates change and
+	 * their commands need re-registering (1.0.4). Returns a function that
+	 * removes the listener.
+	 */
+	onChange(listener: (data: PluginData) => void): () => void {
+		this.listeners.add(listener);
+		return () => this.listeners.delete(listener);
+	}
+
 	/** Writes the current settings to `data.json`. */
 	async save(): Promise<void> {
-		if (this.readOnly) return;
-		await this.host.saveData(this.current);
+		if (!this.readOnly) await this.host.saveData(this.current);
+		for (const listener of this.listeners) listener(this.current);
 	}
 
 	/** Applies a change to the settings and saves them. */

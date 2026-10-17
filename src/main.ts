@@ -7,6 +7,7 @@ import { Secrets } from './obsidian/secrets';
 import { SettingsStore } from './obsidian/settings-store';
 import { VaultTagIndex } from './obsidian/tag-index';
 import { RunController } from './run/run-controller';
+import { TemplateCommands } from './ui/commands';
 import { DeriveModal, type DeriveOptions } from './ui/derive-modal';
 
 /** The settings API Obsidian uses internally to open a plugin's tab; it isn't in the public typings. */
@@ -44,6 +45,14 @@ export default class InferenceMachinePlugin extends Plugin {
 			tagIndex: this.tagIndex,
 			yaml: { parse: (text) => parseYaml(text) as unknown, stringify: stringifyYaml },
 		});
+
+		// Entry points (REQ-1). Opening the popup reads only local state (1.0.5).
+		this.addRibbonIcon('sparkles', 'Open Inference Machine', () => this.openDerive());
+		// Obsidian shows this as "Inference Machine: Open".
+		this.addCommand({ id: 'open', name: 'Open', callback: () => this.openDerive() });
+		const templateCommands = new TemplateCommands(this, (templateId) => this.openDerive({ templateId }));
+		templateCommands.sync(this.store.data.templates);
+		this.register(this.store.onChange((data) => templateCommands.sync(data.templates)));
 	}
 
 	/** Cancels any run in flight; everything registered through the Plugin API is cleaned up by Obsidian. */

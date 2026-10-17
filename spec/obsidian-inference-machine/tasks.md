@@ -357,7 +357,7 @@ Dependencies within a milestone are noted per task.
     5. Sizing: about 90% of the viewport for Running and Preview, full-screen on mobile. Theme variables only (19.1). Keyboard: tab order, `Mod+Enter`, `Esc` (19.2). Persist `UiState`.
     6. Covered end to end in TASK-21, plus a manual theme check in TASK-23.
 
-- [ ] **TASK-17: Ribbon and commands**
+- [x] **TASK-17: Ribbon and commands**
   - **Associated Acceptance Criteria**: `1.1`, `1.2`, `1.3`, `1.4`
   - **Depends on**: TASK-16
   - **Concrete Steps**:
