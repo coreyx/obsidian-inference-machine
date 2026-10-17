@@ -17,4 +17,6 @@ export interface ChatResult {
 	truncated: boolean;
 	/** The text arrived as a stream (false when streaming wasn't available). */
 	streamed: boolean;
+	/** Something the user should know about how the request went, such as why streaming was off. */
+	notice?: string;
 }

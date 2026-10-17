@@ -50,3 +50,21 @@ export function parseYaml(text: string): unknown {
 export function stringifyYaml(value: unknown): string {
 	return YAML.stringify(value);
 }
+
+/** The parameters `requestUrl` was called with, as Obsidian defines them. */
+export interface RequestUrlParam {
+	url: string;
+	method?: string;
+	headers?: Record<string, string>;
+	body?: string;
+	throw?: boolean;
+}
+
+/** Tests set `handler` to script `requestUrl`; calling it without one is a test bug. */
+export const requestUrlFixture: { handler?: (param: RequestUrlParam) => { status: number; text: string } | Promise<{ status: number; text: string }> } = {};
+
+/** Obsidian's CORS-free request function, scripted through `requestUrlFixture`. */
+export async function requestUrl(param: RequestUrlParam): Promise<{ status: number; text: string }> {
+	if (!requestUrlFixture.handler) throw new Error('requestUrl called without a test fixture');
+	return requestUrlFixture.handler(param);
+}

@@ -186,7 +186,7 @@ Dependencies within a milestone are noted per task.
 
 **Done when:** All four engine types and LM Studio detection pass their fixture tests.
 
-- [ ] **TASK-9: Engine transport, SSE parsing and errors**
+- [x] **TASK-9: Engine transport, SSE parsing and errors**
   - **Associated Acceptance Criteria**: `3.4`, `8.5`, `18.2`
   - **Concrete Steps**:
     1. `sse.ts`: an incremental server-sent-events parser that handles split chunks, multi-line `data:` lines, comments and `[DONE]`.
