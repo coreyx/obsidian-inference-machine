@@ -54,11 +54,13 @@ export default defineConfig(
 		},
 	},
 	{
-		// Vitest's asymmetric matchers (expect.any, objectContaining) are typed `any`.
+		// Vitest's asymmetric matchers (expect.any, objectContaining) are typed `any`,
+		// and tests run in Node, where there's no window for popout-safe timers.
 		files: ['test/**/*.ts'],
 		rules: {
 			'@typescript-eslint/no-unsafe-assignment': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
+			'obsidianmd/prefer-window-timers': 'off',
 		},
 	},
 	{

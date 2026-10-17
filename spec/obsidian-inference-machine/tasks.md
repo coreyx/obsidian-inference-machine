@@ -308,7 +308,7 @@ Dependencies within a milestone are noted per task.
        - nested tags are flattened when prefixes are off (14.5)
        - failure handling (14.6)
 
-- [ ] **TASK-15: Run controller**
+- [x] **TASK-15: Run controller**
   - **Associated Acceptance Criteria**: `2.4`, `8.1`, `8.2`, `8.4`, `9.4`, `16.1`, `16.2`, `21.2`, `21.4`, `21.8`
   - **Depends on**: TASK-3 to TASK-14
   - **Concrete Steps**:
