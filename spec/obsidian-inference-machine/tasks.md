@@ -35,7 +35,7 @@ Dependencies within a milestone are noted per task.
 
 **Done when:** The plugin builds, loads in a test vault, and loads and resolves settings.
 
-- [ ] **TASK-1: Project scaffold and tooling**
+- [x] **TASK-1: Project scaffold and tooling**
   - **Associated Acceptance Criteria**: *infrastructure, no direct criterion.* Enables the mobile constraint behind `17.1`.
   - **Concrete Steps**:
     1. Initialize from the obsidian-sample-plugin layout:

@@ -1,0 +1,22 @@
+# editors
+.vscode
+*.iml
+.idea
+
+# npm
+node_modules
+
+# Build output: main.js is attached to GitHub releases instead of committed.
+main.js
+*.map
+
+# Test output
+coverage
+.obsidian-cache
+.wdio-vaults
+
+# Obsidian plugin data from local test vaults
+data.json
+
+# OS
+.DS_Store
