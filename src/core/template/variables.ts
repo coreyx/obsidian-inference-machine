@@ -63,6 +63,20 @@ function formatDateTime(d: Date): string {
 }
 
 /**
+ * Copies frontmatter values for templates. A YAML parser may turn an
+ * unquoted date into a `Date`, which would render as a long timestamp; it's
+ * turned back into the `YYYY-MM-DD` text the note shows.
+ */
+function templateValue(value: unknown): unknown {
+	if (value instanceof Date) return Number.isNaN(value.getTime()) ? '' : value.toISOString().slice(0, 10);
+	if (Array.isArray(value)) return value.map(templateValue);
+	if (value && typeof value === 'object') {
+		return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, templateValue(v)]));
+	}
+	return value;
+}
+
+/**
  * Builds the variable map for rendering. A frontmatter key the note doesn't
  * have simply isn't in `properties`, and knap renders a missing value as
  * empty (6.0.3).
@@ -73,7 +87,7 @@ export function buildVariables(note: NoteSnapshot, options: VariableOptions): Re
 		content: note.content,
 		body: note.body,
 		frontmatter: note.frontmatterText,
-		properties: { ...note.properties },
+		properties: templateValue(note.properties),
 		path: note.path,
 		folder: note.folder,
 		created: formatDateTime(new Date(note.ctime)),

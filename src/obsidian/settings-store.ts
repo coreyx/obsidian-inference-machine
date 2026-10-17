@@ -2,6 +2,7 @@ import { checkEngine, checkTemplate, fillGlobal, fillUiState, isRecord } from '.
 import { defaultPluginData } from '../core/defaults';
 import type { PluginData } from '../core/schema';
 import { SCHEMA_VERSION } from '../core/schema';
+import { seedBuiltIns, upgradeBuiltIns } from '../core/templates';
 
 /**
  * Upgrades raw `data.json` from one schema version to the next. Keyed by the
@@ -26,19 +27,26 @@ export interface NormalizedData {
 	fromNewerVersion: boolean;
 }
 
+/** Generates ids for new engines and templates. */
+export const newId = (): string => crypto.randomUUID();
+
 /**
  * Turns whatever `data.json` holds into valid `PluginData`: runs pending
- * migrations, fills missing fields from the defaults, and drops entries that
- * can't be used (such as an engine with an unknown provider type), reporting
- * each one.
+ * migrations, fills missing fields from the defaults, drops entries that
+ * can't be used (such as an engine with an unknown provider type),
+ * reporting each one, and upgrades unedited built-in templates (15.0.4).
+ * A new install, with no data at all, starts with the built-ins (15.1).
  */
 export function normalizePluginData(
 	raw: unknown,
 	migrations: Readonly<Record<number, Migration>> = MIGRATIONS,
 	currentVersion: number = SCHEMA_VERSION,
+	makeId: () => string = newId,
 ): NormalizedData {
 	if (!isRecord(raw)) {
-		return { data: defaultPluginData(), warnings: [], changed: true, fromNewerVersion: false };
+		const data = defaultPluginData();
+		data.templates = seedBuiltIns(makeId);
+		return { data, warnings: [], changed: true, fromNewerVersion: false };
 	}
 	const storedVersion = typeof raw.schemaVersion === 'number' ? raw.schemaVersion : 0;
 	const fromNewerVersion = storedVersion > currentVersion;
@@ -75,7 +83,8 @@ export function normalizePluginData(
 		schemaVersion: fromNewerVersion ? storedVersion : currentVersion,
 		engines,
 		globalSettings: global.value ?? defaultPluginData().globalSettings,
-		templates,
+		// Data from a newer version is never rewritten, built-ins included.
+		templates: fromNewerVersion ? templates : upgradeBuiltIns(templates).templates,
 		ui: fillUiState(migrated.ui),
 	};
 	// A default that points at a deleted engine would silently resolve to nothing.

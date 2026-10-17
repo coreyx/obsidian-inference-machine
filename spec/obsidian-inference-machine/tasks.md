@@ -261,7 +261,7 @@ Dependencies within a milestone are noted per task.
        - the prefix list contains `ai/` for `ai/llm` (14.4)
        - the tag index isn't built when AI tagging is off
 
-- [ ] **TASK-13: Built-in templates**
+- [x] **TASK-13: Built-in templates**
   - **Associated Acceptance Criteria**: `15.1`, `15.2`, `15.3`, `15.4`, `15.5`, `15.6`, `15.7`, `15.8`, `15.9`
   - **Depends on**: TASK-2, TASK-5, TASK-6
   - **Concrete Steps**:

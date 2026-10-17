@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { BUILT_INS } from '../../src/core/builtins';
 import { DEFAULTS, defaultPluginData } from '../../src/core/defaults';
 import { SCHEMA_VERSION } from '../../src/core/schema';
 import { normalizePluginData, SettingsStore, type Migration } from '../../src/obsidian/settings-store';
@@ -42,13 +43,18 @@ describe('DEFAULTS (5.0.4, Q17)', () => {
 });
 
 describe('normalizePluginData', () => {
-	it('turns an empty data file into the defaults', () => {
-		for (const raw of [null, undefined, {}, 'garbage']) {
+	it('starts a new install with the defaults and the built-in templates (15.1)', () => {
+		for (const raw of [null, undefined, 'garbage']) {
 			const result = normalizePluginData(raw);
-			expect(result.data).toEqual(defaultPluginData());
+			expect({ ...result.data, templates: [] }).toEqual(defaultPluginData());
+			expect(result.data.templates.map((t) => t.origin?.builtInId)).toEqual(BUILT_INS.map((b) => b.builtInId));
 			expect(result.changed).toBe(true);
 			expect(result.warnings).toEqual([]);
 		}
+	});
+
+	it('fills an empty object with defaults, without re-adding deleted built-ins', () => {
+		expect(normalizePluginData({}).data).toEqual(defaultPluginData());
 	});
 
 	it('keeps the user\'s values and fills only what is missing', () => {
@@ -149,7 +155,7 @@ describe('SettingsStore', () => {
 		const h = host(null);
 		const store = new SettingsStore(h);
 		await store.load();
-		expect(store.data).toEqual(defaultPluginData());
+		expect(store.data.templates).toHaveLength(BUILT_INS.length);
 		expect(h.saveData).toHaveBeenCalledTimes(1);
 	});
 
