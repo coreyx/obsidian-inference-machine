@@ -17,5 +17,6 @@
 		"types": ["node"],
 		"lib": ["ES2021", "DOM", "DOM.Iterable"]
 	},
-	"include": ["src/**/*.ts", "test/**/*.ts", "vitest.config.ts"]
+	"include": ["src/**/*.ts", "test/**/*.ts", "vitest.config.ts"],
+	"exclude": ["test/e2e"]
 }

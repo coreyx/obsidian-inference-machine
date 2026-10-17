@@ -17,3 +17,21 @@ jobs:
       - run: npm run lint
       - run: npm run build
       - run: npm test
+
+  e2e:
+    # End-to-end tests in real Obsidian (TASK-21). Non-blocking until they've proven stable in CI.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/cache@v4
+        with:
+          path: .obsidian-cache
+          key: obsidian-cache-${{ hashFiles('manifest.json') }}
+      - run: npm ci
+      - run: npm run build
+      - run: xvfb-run --auto-servernum npm run test:e2e

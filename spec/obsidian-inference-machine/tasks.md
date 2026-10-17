@@ -444,7 +444,7 @@ Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were add
     2. Hide LM Studio detection under `Platform.isMobile`, with an explanation (17.2). Make the modal full-screen and check touch targets.
     3. Run the core flow with a cloud engine in Obsidian mobile, or `wdio-obsidian-service`'s mobile emulation (17.1).
 
-- [ ] **TASK-21: End-to-end tests**
+- [x] **TASK-21: End-to-end tests**
   - **Associated Acceptance Criteria**: `1.1`, `1.2`, `1.3`, `1.4`, `2.1`, `2.3`, `2.4`, `3.6`, `9.1`, `9.3`, `9.4`, `10.1`, `10.4`, `10.5`, `10.8`, `11.4`, `17.1`, `17.2`, `19.2`, `19.3`
   - **Depends on**: TASK-16 to TASK-20, TASK-24, TASK-25
   - **Concrete Steps**:

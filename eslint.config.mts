@@ -38,7 +38,7 @@ export default defineConfig(
 			},
 			parserOptions: {
 				projectService: {
-					allowDefaultProject: ['eslint.config.mts', 'manifest.json', 'test/e2e/*.mjs'],
+					allowDefaultProject: ['eslint.config.mts', 'wdio.conf.mts', 'manifest.json'],
 				},
 				tsconfigRootDir: import.meta.dirname,
 				extraFileExtensions: ['.json'],
@@ -67,6 +67,17 @@ export default defineConfig(
 			'@typescript-eslint/no-unsafe-assignment': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
 			'obsidianmd/prefer-window-timers': 'off',
+		},
+	},
+	{
+		// End-to-end specs run under Mocha in WebdriverIO. TypeScript checks names
+		// there, so no-undef only misreads type-only globals such as WebdriverIO.
+		files: ['test/e2e/**/*.ts', 'wdio.conf.mts'],
+		languageOptions: {
+			globals: { ...globals.mocha },
+		},
+		rules: {
+			'no-undef': 'off',
 		},
 	},
 	{
