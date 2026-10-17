@@ -158,7 +158,7 @@ Dependencies within a milestone are noted per task.
        - a heading inside a code block is ignored
        - `## Sources` custom heading (10.7)
 
-- [ ] **TASK-7: Inline prompts (core)**
+- [x] **TASK-7: Inline prompts (core)**
   - **Associated Acceptance Criteria**: `21.1`, `21.2`, `21.3`, `21.5`, `21.6`
   - **Concrete Steps**:
     1. `collectPrompts(tpls)` returns the prompt texts from the filename, property and body templates, in order, with duplicates removed.
