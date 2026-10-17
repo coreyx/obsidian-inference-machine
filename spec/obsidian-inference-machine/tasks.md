@@ -23,11 +23,11 @@ UI modules are covered by end-to-end tests (TASK-21) rather than unit thresholds
 | 1. Foundation | TASK-1 to TASK-3 | — |
 | 2. Core logic | TASK-4 to TASK-8 (any order) | Milestone 1 |
 | 3. Engines | TASK-9 to TASK-11 | TASK-1 only, so it can run alongside Milestone 2 |
-| 4. Headless run | TASK-12 to TASK-15 | Milestones 2 and 3 |
-| 5. User interface | TASK-16 to TASK-19 | Milestone 4 |
+| 4. Headless run | TASK-12 to TASK-15, then TASK-25 | Milestones 2 and 3 |
+| 5. User interface | TASK-16 to TASK-19, then TASK-24 | Milestone 4 |
 | 6. Mobile, end-to-end tests and release | TASK-20 to TASK-23 | Milestone 5 |
 
-Dependencies within a milestone are noted per task.
+Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were added in a revision after end-to-end testing; TASK-21 depends on both.
 
 ## Task List
 
@@ -39,7 +39,7 @@ Dependencies within a milestone are noted per task.
   - **Associated Acceptance Criteria**: *infrastructure, no direct criterion.* Enables the mobile constraint behind `17.1`.
   - **Concrete Steps**:
     1. Initialize from the obsidian-sample-plugin layout:
-       - `package.json`, `tsconfig.json`, `esbuild.config.mjs` (externals as in tech.md), `manifest.json` (`id: inference-machine`, `minAppVersion: 1.11.4`, `isDesktopOnly: false`), `versions.json`, `styles.css`
+       - `package.json`, `tsconfig.json`, `esbuild.config.mjs` (externals as in tech.md), `manifest.json` (`id: inference-machine`, `minAppVersion: 1.11.4`, raised to 1.13.4 by TASK-24, `isDesktopOnly: false`), `versions.json`, `styles.css`
        - `npm run dev`, `build`, `lint`, `test`
     2. Pin exact versions of `knap` and `@codemirror/lang-markdown`. Add the dev dependencies `obsidian`, `typescript`, `esbuild`, `eslint`, `eslint-plugin-obsidianmd`, `vitest`, `@vitest/coverage-v8` and `fast-check` (MIT, for property tests).
     3. Configure ESLint with `eslint-plugin-obsidianmd`. Add a `no-restricted-imports` rule that bans `obsidian` (and Node built-ins) under `src/core/`, and bans Node built-ins everywhere (REQ-17).
@@ -243,7 +243,7 @@ Dependencies within a milestone are noted per task.
   - **Associated Acceptance Criteria**: `2.4`, `10.1`, `10.2`, `10.4`, `10.8`, `11.4`, `14.1`, `14.4`
   - **Depends on**: TASK-6
   - **Concrete Steps**:
-    1. `note-reader.ts`: `readNote(app, file)` uses `vault.cachedRead` and `getFileCache`. Frontmatter tags come from `parseFrontMatterTags` (11.4) and inline tags from `cache.tags`. It also produces `getFrontMatterInfo` splitting, `ctime` and `mtime`. **Read-only. No write API is reachable from it** (2.4).
+    1. `note-reader.ts`: `readNote(app, file)` uses `vault.cachedRead` and `getFileCache`. Frontmatter tags come from `parseFrontMatterTags` and inline tags from `cache.tags`. A single-string `tags` value is split by TASK-25 (11.4). It also produces `getFrontMatterInfo` splitting, `ctime` and `mtime`. **Read-only. No write API is reachable from it** (2.4).
     2. `tag-index.ts`: `VaultTagIndex` with tag counts from `getAllTags` across Markdown files.
        - It's built lazily on first use and kept current on `metadataCache` `changed`/`deleted` events after that.
        - It provides `ranked(1000)`, `keys()` and `prefixes()` (every ancestor of a nested tag).
@@ -332,6 +332,15 @@ Dependencies within a milestone are noted per task.
        - partial failures
        - request-count assertions for 21.2, 21.4 and 21.8
 
+- [ ] **TASK-25: Read single-string frontmatter tags (Q28)**
+  - **Associated Acceptance Criteria**: `11.4`
+  - **Depends on**: TASK-12
+  - **Concrete Steps**:
+    1. In `note-reader.ts`, when the frontmatter `tags` (or `tag`) value is a single string, split it on commas and whitespace and strip any leading `#`, rather than using `parseFrontMatterTags`. Obsidian itself reads a string as one tag only when it has no spaces or commas, so `"alpha, beta"` gives it no tags at all. Lists still go through `parseFrontMatterTags`.
+    2. Make the test double's `parseFrontMatterTags` behave as the real one does (checked in Obsidian 1.14.4), so unit tests can't assume Obsidian splits strings.
+    3. Unit tests: `"alpha, beta"`, `"alpha beta"`, `"alpha,beta"`, `"#alpha"` and a single word all give the expected tags.
+    4. The end-to-end 11.4 scenario in TASK-21 passes.
+
 ### Milestone 5: User interface
 
 **Done when:** A user can derive a note from the ribbon or a command, and manage engines and templates in settings.
@@ -397,11 +406,10 @@ Dependencies within a milestone are noted per task.
        - give each template a new `id`
        - number names on collision (20.3)
        - match `engineName` to an existing engine, else leave it unset
-    3. Write `src/core/examples/recipe-card.json`, `book-reference.json` and `movie-reference.json`:
+    3. Write `examples/recipe-card.json`, `book-reference.json` and `movie-reference.json` in the repository, for users to import. They live only there, since the plugin doesn't load them.
        - inline prompts adapted from kepano's Recipes, Goodreads and IMDB/Letterboxd templates
        - "leave empty rather than guess" instructions
        - `omitEmptyProperties: true`
-       - copied to `examples/` in the repository for users
     4. Tests:
        - a round trip gives an identical template (20.1)
        - no secret in the exported text (20.2)
@@ -409,6 +417,20 @@ Dependencies within a milestone are noted per task.
        - a malformed file is rejected with no change (20.4)
        - each example imports and renders against a fixture engine on sample notes (20.5)
        - Book reference with a missing year gives no `year` property (20.6, automated half)
+
+- [ ] **TASK-24: Raise minAppVersion to 1.13.4 and adopt declarative settings**
+  - **Associated Acceptance Criteria**: none (platform upgrade, so the plugin's settings appear in Obsidian's settings search)
+  - **Depends on**: TASK-18, TASK-19
+  - **Concrete Steps**:
+    1. Set `minAppVersion` to 1.13.4, the first public 1.13 release, in `manifest.json` and `versions.json`. The end-to-end "earliest" run then uses 1.13.4.
+    2. Rebuild the settings tab on `getSettingDefinitions()`:
+       - one group per section, with headings
+       - engines and templates as lists, with `render` rows for their buttons, `addItem` for Add engine and New template, and `onDelete` with the existing confirmation
+       - plain controls for the output and tag defaults, read and written through `getControlValue` / `setControlValue` on the global settings
+       - Detect LM Studio hidden on mobile with its explanation (17.2), as now
+       - redraws through `update()` instead of `display()`
+    3. Use `setDestructive()` for delete confirmations instead of the `mod-warning` class.
+    4. Verify: lint has no settings-API warnings, settings search finds "Detect LM Studio" and "Tag format", and the settings scenarios still pass in Obsidian 1.13.4 and the latest version.
 
 ### Milestone 6: Mobile, end-to-end tests and release
 
@@ -423,8 +445,8 @@ Dependencies within a milestone are noted per task.
     3. Run the core flow with a cloud engine in Obsidian mobile, or `wdio-obsidian-service`'s mobile emulation (17.1).
 
 - [ ] **TASK-21: End-to-end tests**
-  - **Associated Acceptance Criteria**: `1.1`, `1.2`, `1.3`, `1.4`, `2.1`, `2.3`, `2.4`, `3.6`, `9.1`, `9.3`, `9.4`, `10.1`, `10.4`, `10.5`, `10.8`, `17.1`, `17.2`, `19.2`, `19.3`
-  - **Depends on**: TASK-16 to TASK-20
+  - **Associated Acceptance Criteria**: `1.1`, `1.2`, `1.3`, `1.4`, `2.1`, `2.3`, `2.4`, `3.6`, `9.1`, `9.3`, `9.4`, `10.1`, `10.4`, `10.5`, `10.8`, `11.4`, `17.1`, `17.2`, `19.2`, `19.3`
+  - **Depends on**: TASK-16 to TASK-20, TASK-24, TASK-25
   - **Concrete Steps**:
     1. Set up `wdio-obsidian-service` with a fixture vault and a local mock LLM server: an OpenAI-compatible stub that serves canned streaming and JSON responses, with CORS enabled and with it disabled.
     2. Scenarios:
@@ -445,6 +467,8 @@ Dependencies within a milestone are noted per task.
        - the source note unchanged after every scenario
        - mobile emulation: the core flow, with Detect hidden
        - the CORS-disabled stub falls back to non-streaming and the run still succeeds
+       - frontmatter tags written as one string are read (11.4)
+       - runs on the latest Obsidian, on the minAppVersion, and under mobile emulation
     3. Add them to CI as a separate, non-blocking job at first. Make it blocking once it's stable.
 
 - [ ] **TASK-22: README, disclosure and release setup**

@@ -257,7 +257,7 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
   3. tags from the template's static properties
   4. AI tags
 - **11.0.3 (Ubiquitous)**: The system shall keep source tags exactly as the source spells them, unless "Apply tag format to source tags" is enabled (REQ-13) or a tag must be changed to be valid (13.0.4).
-- **11.0.4 (Unwanted Behavior)**: If the source note's frontmatter `tags` is a single string rather than a list, then the system shall still read it correctly, as Obsidian does.
+- **11.0.4 (Unwanted Behavior)**: If the source note's frontmatter `tags` is a single string rather than a list, then the system shall split it into tags on commas and spaces (Q28). Obsidian itself reads such a string as one tag only when it contains no spaces or commas, so this recovers what the note's author meant.
 
 #### Acceptance Criteria
 - **11.1**: A source with frontmatter tags `[Project, area/work]` and an inline `#idea` produces output tags `[Project, area/work, idea]`.
@@ -465,7 +465,7 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 
 ## 3. Open Questions
 
-Each question has a stable ID, continuing from `product.md`. When a question is answered, its ID is retired and never reused. Q23–Q25 came from the `tech.md` review, and Q26–Q27 from the [Web Clipper template findings](../../analysis/web-clipper-templates/findings.md).
+Each question has a stable ID, continuing from `product.md`. When a question is answered, its ID is retired and never reused. Q23–Q25 came from the `tech.md` review, Q26–Q27 from the [Web Clipper template findings](../../analysis/web-clipper-templates/findings.md), and Q28–Q29 from implementation.
 
 There are no open questions right now.
 
@@ -489,5 +489,7 @@ There are no open questions right now.
 | Q25 | API keys for OpenAI-compatible engines and LM Studio | Optional Bearer key; LM Studio detection handles authentication | 3.0.10, 4.0.7, 4.0.8 |
 | Q26 | Clipping-aware built-in templates | Literature note carries `source`, `author` and `published` over; every built-in adds `created`; empty properties are left out | 15.0.6–15.0.8 |
 | Q27 | Example templates adapted from Web Clipper | Recipe card, Book reference and Movie reference ship as importable examples, not built-ins | 20.0.7, 20.0.8 |
+| Q28 | Frontmatter `tags` written as one string | Split it on commas and spaces, rather than following Obsidian, which reads such a string as no tags | 11.0.4 |
+| Q29 | Real-model verification (TASK-23) | The user enters API keys and the LM Studio token in a sandboxed test vault, so they never pass through the conversation, and the agent runs the templates | TASK-23 |
 
-The next new question is Q28.
+The next new question is Q30.

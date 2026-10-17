@@ -457,7 +457,7 @@ Screen-level visual design is left to `design-direction` if wanted. These are th
 - **Modal size:** the modal grows to about 90% of the viewport for the Running and Preview steps (REQ-9). On mobile it's full-screen.
 - **Keyboard:** Tab order follows the visual order, `Mod+Enter` runs or saves, and `Esc` cancels or closes (19.0.2).
 - **TemplateEditorModal:** CodeMirror fields for main prompt, prompt context, filename, body wrapper and property values, with `knap/codemirror` highlighting and lint diagnostics (6.0.4, 7.0.3, 21.0.7). Inheritable settings are tri-state controls (decision 3).
-- **SettingsTab sections:**
+- **SettingsTab sections**, declared through `getSettingDefinitions()` so Obsidian's settings search finds them:
   - Engines: list; add/edit with `SecretComponent`; List models; Test; "Detect LM Studio", hidden when `Platform.isMobile` (4.0.6, 17.2)
   - Templates: list; new, duplicate, edit, delete; import, export; restore built-ins
   - Output defaults
@@ -488,7 +488,7 @@ Screen-level visual design is left to `design-direction` if wanted. These are th
 | Name collision | `planPath` adds ` 1`, ` 2` and so on; with `collision: 'ask'`, a modal offers rename, number or cancel. Re-checked at save, and the source link is regenerated if the path changed | 10.0.4, 10.4 |
 | References heading already in output | Link appended inside that heading's section; otherwise the heading is appended at the end | 10.0.6, 10.6 |
 | Tag can't be made valid (`1984`) | Dropped; listed in the preview warnings | 13.0.5, 13.4 |
-| `tags:` is a string in the source | Read via `parseFrontMatterTags` | 11.0.4, 11.4 |
+| `tags:` is a string in the source | Split on commas and spaces by `note-reader.ts`; Obsidian's `parseFrontMatterTags` would read `"alpha, beta"` as no tags (Q28) | 11.0.4, 11.4 |
 | AI returns more than `maxTags` | AI tags capped after dedup against source and template tags | 14.0.4, 14.2 |
 | Inline prompt in the main prompt or context | Lint error in the editor; literal text at run time | 21.0.7, 21.7 |
 | Malformed import file | Rejected whole with a reason; no change | 20.0.5, 20.4 |

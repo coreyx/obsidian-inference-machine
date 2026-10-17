@@ -24,10 +24,10 @@ Beyond those, it adds:
 **Choice:** TypeScript, bundled to a single `main.js` with esbuild, from the official [obsidian-sample-plugin](https://github.com/obsidianmd/obsidian-sample-plugin) layout:
 - npm, with Node 20 or later.
 - `obsidian`, `electron`, `@codemirror/*` and `@lezer/{common,highlight,lr}` are marked external.
-- `manifest.json` sets `isDesktopOnly: false` and `minAppVersion: 1.11.4` (see SecretStorage below).
+- `manifest.json` sets `isDesktopOnly: false` and `minAppVersion: 1.13.4` (see UI and SecretStorage below).
 - Releases follow the sample plugin's process: `manifest.json`, `main.js` and `styles.css` attached to a GitHub release whose tag is the bare version number.
 
-Current versions at time of writing: `obsidian` typings 1.14.4, TypeScript 7.0.2, esbuild 0.28.2.
+Current versions at time of writing: `obsidian` typings 1.14.4, TypeScript 7.0.2, esbuild 0.28.2. The build pins TypeScript 6.0.3: TypeScript 7 is the native port, which has no JavaScript API, and `typescript-eslint` needs one.
 
 **Why:** This is the path Obsidian supports and reviews for community plugins (constraint in [Product](./product.md)). REQ-17 requires mobile, so the bundle must not depend on Node built-ins, which esbuild's externals and a mobile test pass enforce. One bundle file is what Obsidian loads.
 
@@ -45,7 +45,7 @@ Current versions at time of writing: `obsidian` typings 1.14.4, TypeScript 7.0.2
 ### UI
 **Choice:** Obsidian's native UI API throughout:
 - `Modal` for the popup, sized with plugin CSS so the preview step is big enough to edit a full note (REQ-9).
-- `Setting`, `PluginSettingTab` and `SecretComponent` for settings.
+- `PluginSettingTab` built on Obsidian's declarative settings (`getSettingDefinitions()`, 1.13), so every setting appears in Obsidian's settings search. Rows with buttons, such as the engine and template lists, use its `render` entries. `Setting` and `SecretComponent` fill those rows.
 - `FuzzySuggestModal` / `AbstractInputSuggest` for the source-note and folder pickers (REQ-2, REQ-10).
 - `Notice` for notices.
 - `addRibbonIcon` and `addCommand` for entry points (REQ-1).
@@ -188,7 +188,7 @@ If a streaming `fetch` fails before the response starts (a CORS or network-type 
 
 ### Frontmatter, tags and links
 **Choice:**
-- **Reading notes:** `metadataCache.getFileCache` for the source note's frontmatter and inline tags. `parseFrontMatterTags` handles the string-or-list `tags` forms (11.0.4).
+- **Reading notes:** `metadataCache.getFileCache` for the source note's frontmatter and inline tags. `parseFrontMatterTags` reads a `tags` list. A single string is split on commas and spaces by the plugin (11.0.4, Q28), because Obsidian reads a string as one tag only when it contains no spaces or commas.
 - **Vault tag list for AI tagging (14.0.3):** built from `getAllTags` over each Markdown file's cache. It's cached and kept current from `metadataCache` change events, and only built when AI tagging is on (14.1).
 - **Frontmatter in text:** `getFrontMatterInfo` and `parseYaml` / `stringifyYaml` for splitting and assembling frontmatter, including the AI output's frontmatter (8.0.7).
 - **Source link:** `fileManager.generateMarkdownLink` follows the vault's link settings (Q16).
@@ -208,7 +208,7 @@ The tag pipeline (merge, normalize, dedup, format, validate; REQ-11 to REQ-14) i
 **Choice:** Obsidian's [SecretStorage](https://docs.obsidian.md/plugins/guides/secret-storage) (`app.secretStorage`, available since 1.11.4) with `SecretComponent` in settings:
 - The plugin's settings store only the secret's ID per engine. This includes the optional key for OpenAI-compatible engines and LM Studio tokens (3.0.10, 4.0.7).
 - The key itself is read at request time with `getSecret`.
-- `minAppVersion` is 1.11.4, so SecretStorage is always available. No `data.json` fallback is needed, and REQ-18's "where available" always holds.
+- `minAppVersion` is 1.13.4, so SecretStorage is always available. No `data.json` fallback is needed, and REQ-18's "where available" always holds.
 
 **Why:**
 - It keeps API keys out of `data.json`, which syncs and is plain text (18.0.4).
@@ -267,7 +267,7 @@ The tag pipeline (merge, normalize, dedup, format, validate; REQ-11 to REQ-14) i
   - Either way, this is still an improvement over plaintext in `data.json`, but the plugin shouldn't claim keychain-grade protection.
 - **Bundled model metadata goes stale.** The table of context windows for Anthropic and OpenAI models will drift as models change. That's why the value is always editable and the warning is advisory.
 - **Undocumented provider and LM Studio changes.** LM Studio's native REST API has changed shape between v0 and v1. Detection falls back across versions, and these paths should get fixture tests.
-- **minAppVersion 1.11.4** excludes users on Obsidian versions from before January 2026. This is acceptable for a new plugin in October 2026.
+- **minAppVersion 1.13.4** (July 2026, the first public 1.13 release) excludes users on older versions. Obsidian updates its app automatically, so this is a small group, and the gain is the declarative settings API, which puts the plugin's settings in Obsidian's settings search, plus other 1.13 APIs such as `setDestructive()`. It was raised from 1.11.4 during implementation.
 - **Licenses:**
   - **MIT:** `knap`, `dayjs`, `@codemirror/lang-markdown`, Vitest, `wdio-obsidian-service`.
   - **MIT:** also `eslint-plugin-obsidianmd`, and Web Clipper (reference only, nothing copied).
