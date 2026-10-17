@@ -48,7 +48,7 @@ Dependencies within a milestone are noted per task.
     6. Add a GitHub Actions workflow that runs lint, build and test on pushes and pull requests. Add a `.gitignore` for `node_modules/`, `main.js` and coverage output.
     7. Verify: `npm run build` produces `main.js`, the plugin loads in a test vault on desktop, and `npm test` passes with zero tests.
 
-- [ ] **TASK-2: Data model, defaults and settings store**
+- [x] **TASK-2: Data model, defaults and settings store**
   - **Associated Acceptance Criteria**: `5.2` (the defaults half; resolution in TASK-3)
   - **Concrete Steps**:
     1. Implement `src/core/schema.ts` with `PluginData`, `EngineConfig`, `Template`, `PropertyDef`, `TaggingSettings`, `TaggingOverrides`, `GlobalSettings` and `UiState`, exactly as in design.md's data model.
