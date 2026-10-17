@@ -239,7 +239,7 @@ Dependencies within a milestone are noted per task.
 
 **Done when:** A full run (snapshot, requests, assembly, save) works through the run controller in tests, with built-ins and AI tagging.
 
-- [ ] **TASK-12: Obsidian adapters**
+- [x] **TASK-12: Obsidian adapters**
   - **Associated Acceptance Criteria**: `2.4`, `10.1`, `10.2`, `10.4`, `10.8`, `11.4`, `14.1`, `14.4`
   - **Depends on**: TASK-6
   - **Concrete Steps**:
