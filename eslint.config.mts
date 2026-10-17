@@ -38,7 +38,7 @@ export default defineConfig(
 			},
 			parserOptions: {
 				projectService: {
-					allowDefaultProject: ['eslint.config.mts', 'manifest.json'],
+					allowDefaultProject: ['eslint.config.mts', 'manifest.json', 'test/e2e/*.mjs'],
 				},
 				tsconfigRootDir: import.meta.dirname,
 				extraFileExtensions: ['.json'],
@@ -48,16 +48,22 @@ export default defineConfig(
 	...obsidianmd.configs.recommended,
 	{
 		// Build and test tooling runs on Node, never inside Obsidian.
-		files: ['*.mts', '*.ts', 'test/**/*.ts'],
+		files: ['*.mts', '*.ts', 'test/**/*.ts', 'test/**/*.mjs'],
+		languageOptions: {
+			globals: { ...globals.node },
+		},
 		rules: {
 			'obsidianmd/no-nodejs-modules': 'off',
 		},
 	},
 	{
 		// Vitest's asymmetric matchers (expect.any, objectContaining) are typed `any`,
-		// and tests run in Node, where there's no window for popout-safe timers.
-		files: ['test/**/*.ts'],
+		// and tests run in Node, where there's no window for popout-safe timers. Test
+		// tooling such as the mock server may report to the console.
+		files: ['test/**/*.ts', 'test/**/*.mjs'],
 		rules: {
+			'no-console': 'off',
+			'obsidianmd/rule-custom-message': 'off',
 			'@typescript-eslint/no-unsafe-assignment': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
 			'obsidianmd/prefer-window-timers': 'off',
