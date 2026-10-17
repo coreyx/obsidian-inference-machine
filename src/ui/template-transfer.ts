@@ -1,11 +1,11 @@
-import { Modal, Notice, Setting, type App } from 'obsidian';
+import { Modal, Notice, Platform, Setting, type App } from 'obsidian';
 import { exportTemplates, importTemplates } from '../core/template-transfer';
 import type { SettingsStore } from '../obsidian/settings-store';
 
 /**
  * Template import and export (REQ-20). Export copies a template file to the
- * clipboard or downloads it, which works on every platform without putting
- * a JSON file in the vault. Import reads a chosen file or pasted text.
+ * clipboard, or on desktop downloads it, so no JSON file has to live in the
+ * vault. Import reads a chosen file or pasted text.
  */
 
 /** Picks which templates to export, then copies or downloads the file (20.0.1). */
@@ -33,14 +33,16 @@ export class ExportModal extends Modal {
 				}),
 			);
 		}
-		new Setting(el)
-			.addButton((b) => b.setButtonText('Copy to clipboard').onClick(() => void this.copy()))
-			.addButton((b) =>
+		const actions = new Setting(el).addButton((b) => b.setButtonText('Copy to clipboard').onClick(() => void this.copy()));
+		// Mobile webviews don't reliably save a downloaded file, so mobile copies instead (REQ-17).
+		if (!Platform.isMobile) {
+			actions.addButton((b) =>
 				b
 					.setButtonText('Download file')
 					.setCta()
 					.onClick(() => this.download()),
 			);
+		}
 	}
 
 	override onClose(): void {

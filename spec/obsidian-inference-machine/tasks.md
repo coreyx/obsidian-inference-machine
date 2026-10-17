@@ -414,7 +414,7 @@ Dependencies within a milestone are noted per task.
 
 **Done when:** Mobile verified, end-to-end tests in CI, README and release workflow done, real-model verification recorded.
 
-- [ ] **TASK-20: Mobile pass**
+- [x] **TASK-20: Mobile pass**
   - **Associated Acceptance Criteria**: `17.1`, `17.2`
   - **Depends on**: TASK-16, TASK-18
   - **Concrete Steps**:
