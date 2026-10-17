@@ -69,7 +69,7 @@ Dependencies within a milestone are noted per task.
     3. Implement `src/obsidian/settings-store.ts`: load `data.json`, apply migrations keyed by `schemaVersion`, fill missing fields from `DEFAULTS`, save. Reject unknown provider types.
     4. Unit tests: an empty data file loads to defaults, partial data keeps the user's values, and a migration from an older `schemaVersion` runs once.
 
-- [ ] **TASK-3: Settings resolution**
+- [x] **TASK-3: Settings resolution**
   - **Associated Acceptance Criteria**: `3.2`, `3.3`, `3.5`, `5.2`, `5.3`
   - **Concrete Steps**:
     1. Implement `resolveRunConfig` in `src/core/resolve.ts`. It layers popup overrides, then the template, then global settings, then `DEFAULTS`, field by field, and records each field's source layer.
