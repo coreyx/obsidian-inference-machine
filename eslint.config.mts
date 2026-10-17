@@ -1,4 +1,5 @@
 import obsidianmd from 'eslint-plugin-obsidianmd';
+import { DEFAULT_BRANDS } from 'eslint-plugin-obsidianmd/dist/lib/rules/ui/brands.js';
 import globals from 'globals';
 import { builtinModules } from 'node:module';
 import { globalIgnores, defineConfig } from 'eslint/config';
@@ -64,6 +65,14 @@ export default defineConfig(
 		files: ['src/**/*.ts'],
 		rules: {
 			'no-restricted-imports': ['error', nodeBuiltins],
+			// Product names the plugin's UI mentions, kept in their official casing.
+			'obsidianmd/ui/sentence-case': [
+				'warn',
+				{
+					enforceCamelCaseLower: true,
+					brands: [...DEFAULT_BRANDS, 'LM Studio', 'Inference Machine', 'Web Clipper', 'Spaced Repetition'],
+				},
+			],
 		},
 	},
 	{

@@ -220,7 +220,7 @@ Dependencies within a milestone are noted per task.
        - error bodies normalized
        - the Bearer header present or absent depending on the key (3.8)
 
-- [ ] **TASK-11: LM Studio detection**
+- [x] **TASK-11: LM Studio detection**
   - **Associated Acceptance Criteria**: `3.7`, `4.1`, `4.2`, `4.3`, `4.4`, `4.5`, `4.6`
   - **Concrete Steps**:
     1. `lmstudio.ts` `detectLmStudio(port, token?)`:
