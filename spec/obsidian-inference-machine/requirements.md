@@ -30,11 +30,11 @@ Built-in safe defaults never require an inference call. In the requirements, "th
 ## 2. Requirements (EARS Format)
 
 Requirements use the Easy Approach to Requirements Syntax (EARS):
-- **Ubiquitous**: The system shall <response>.
-- **Event-Driven**: When <trigger>, the system shall <response>.
-- **State-Driven**: While <precondition>, the system shall <response>.
-- **Unwanted Behavior**: If <unwanted condition>, then the system shall <response>.
-- **Optional Feature**: Where <feature is enabled>, the system shall <response>.
+- **Ubiquitous**: The system shall &lt;response&gt;.
+- **Event-Driven**: When &lt;trigger&gt;, the system shall &lt;response&gt;.
+- **State-Driven**: While &lt;precondition&gt;, the system shall &lt;response&gt;.
+- **Unwanted Behavior**: If &lt;unwanted condition&gt;, then the system shall &lt;response&gt;.
+- **Optional Feature**: Where &lt;feature is enabled&gt;, the system shall &lt;response&gt;.
 
 ### REQ-1: Entry points
 
@@ -42,7 +42,7 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 
 - **1.0.1 (Ubiquitous)**: The system shall add a ribbon button that opens the Inference Machine popup.
 - **1.0.2 (Ubiquitous)**: The system shall register a command, "Open Inference Machine", that opens the popup.
-- **1.0.3 (Ubiquitous)**: The system shall register one command per template, "Derive with <template name>", that opens the popup with that template preselected (Q21).
+- **1.0.3 (Ubiquitous)**: The system shall register one command per template, "Derive with &lt;template name&gt;", that opens the popup with that template preselected (Q21).
 - **1.0.4 (Event-Driven)**: When a template is created, renamed or deleted, the system shall add, rename or remove its command to match.
 - **1.0.5 (Ubiquitous)**: The system shall open the popup without waiting on any network request.
 
@@ -482,7 +482,7 @@ There are no open questions right now.
 | Q18 | AI output with its own frontmatter | Merge it into the note, template properties win, tags go through the pipeline | 8.0.7 |
 | Q19 | Template import and export | JSON files, with no credentials | REQ-20 |
 | Q20 | Context window source | Per-engine setting, auto-filled where reported | 3.0.9, REQ-16 |
-| Q21 | Per-template commands | One "Derive with <template>" command each | 1.0.3 |
+| Q21 | Per-template commands | One "Derive with &lt;template&gt;" command each | 1.0.3 |
 | Q22 | Streaming into the preview | Yes, where supported; cancelling discards the partial output | 8.0.3, 8.0.4 |
 | Q23 | Importing Web Clipper templates | No. Every reviewed template depends on web-page variables that a vault note doesn't have ([findings](../../analysis/web-clipper-templates/findings.md)) | — |
 | Q24 | Web Clipper-style inline prompt variables | Yes | REQ-21 |
