@@ -1,0 +1,1 @@
+Spaced repetition: review info at increasing intervals. Based on the forgetting curve (Ebbinghaus, 1885). Active recall > rereading. Leitner system uses boxes; SM-2 is the algorithm behind Anki. Interleaving topics helps too.

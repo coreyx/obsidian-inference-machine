@@ -20,3 +20,6 @@ data.json
 
 # OS
 .DS_Store
+
+# The demo vault's Obsidian state and installed plugins are per machine.
+demo/vault/.obsidian/
