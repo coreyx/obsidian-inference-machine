@@ -7,14 +7,25 @@ function bare(tag: string): string {
 }
 
 /**
+ * The source's frontmatter tags. A list goes through Obsidian's own parser.
+ * A single string is split on commas and whitespace (11.0.4, Q28): Obsidian
+ * reads a string as one tag only when it has no spaces or commas, so
+ * `tags: "alpha, beta"` would otherwise give no tags at all.
+ */
+function frontmatterTags(frontmatter: Record<string, unknown> | undefined): string[] {
+	const raw = frontmatter?.tags ?? frontmatter?.tag;
+	if (typeof raw === 'string') return raw.split(/[,\s]+/u).map(bare).filter((tag) => tag !== '');
+	return (parseFrontMatterTags(frontmatter ?? null) ?? []).map(bare);
+}
+
+/**
  * Reads the source note into a plain snapshot (design.md). Only read APIs
  * are used, and nothing here holds on to the file, so no code path that
  * starts from a snapshot can modify the source note (2.0.4).
  *
  * Tags come from Obsidian's own parsing, so the plugin and the vault agree
- * on what the note's tags are: `parseFrontMatterTags` reads `tags` whether
- * it's a list or a single string (11.0.4), and the metadata cache lists
- * inline tags with their positions.
+ * on what the note's tags are: `parseFrontMatterTags` reads a `tags` list,
+ * and the metadata cache lists inline tags with their positions.
  */
 export async function readNote(app: App, file: TFile): Promise<NoteSnapshot> {
 	const content = await app.vault.cachedRead(file);
@@ -38,7 +49,7 @@ export async function readNote(app: App, file: TFile): Promise<NoteSnapshot> {
 		body: info.exists ? content.slice(info.contentStart) : content,
 		frontmatterText: info.exists ? info.frontmatter.replace(/\n$/u, '') : '',
 		properties,
-		frontmatterTags: (parseFrontMatterTags(cache?.frontmatter ?? null) ?? []).map(bare),
+		frontmatterTags: frontmatterTags(cache?.frontmatter),
 		inlineTags,
 		ctime: file.stat.ctime,
 		mtime: file.stat.mtime,

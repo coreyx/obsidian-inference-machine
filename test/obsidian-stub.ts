@@ -119,9 +119,11 @@ export function getFrontMatterInfo(content: string): { exists: boolean; frontmat
 export function parseFrontMatterTags(frontmatter: Record<string, unknown> | null): string[] | null {
 	const raw = frontmatter?.tags ?? frontmatter?.tag;
 	if (raw === undefined || raw === null) return null;
-	const items = Array.isArray(raw) ? raw.map(String) : (typeof raw === 'string' ? raw : JSON.stringify(raw)).split(/[,\s]+/u);
+	// Matches Obsidian 1.14.4: a string with whitespace gives no tags ("alpha, beta" → []),
+	// and any other string is one tag, comma and all ("alpha,beta" → ["#alpha,beta"]).
+	const items = Array.isArray(raw) ? raw.map(String) : typeof raw === 'string' ? (/\s/u.test(raw.trim()) ? [] : [raw]) : [];
 	const tags = items.map((t) => t.trim()).filter((t) => t !== '').map((t) => (t.startsWith('#') ? t : `#${t}`));
-	return tags.length > 0 ? tags : null;
+	return tags;
 }
 
 /** Every tag in a cache entry, frontmatter first, with `#`. */

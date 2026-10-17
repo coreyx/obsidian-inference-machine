@@ -332,7 +332,7 @@ Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were add
        - partial failures
        - request-count assertions for 21.2, 21.4 and 21.8
 
-- [ ] **TASK-25: Read single-string frontmatter tags (Q28)**
+- [x] **TASK-25: Read single-string frontmatter tags (Q28)**
   - **Associated Acceptance Criteria**: `11.4`
   - **Depends on**: TASK-12
   - **Concrete Steps**:

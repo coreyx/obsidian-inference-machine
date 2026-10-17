@@ -27,6 +27,23 @@ describe('readNote', () => {
 		expect(fake.writes).toEqual([]);
 	});
 
+	it('splits tags written as one string, which Obsidian itself would drop (11.4)', async () => {
+		const cases: [string, string[]][] = [
+			['"alpha, beta"', ['alpha', 'beta']],
+			['"alpha beta"', ['alpha', 'beta']],
+			['"alpha,beta"', ['alpha', 'beta']],
+			['"#alpha"', ['alpha']],
+			['single', ['single']],
+			['[one, "#two"]', ['one', 'two']],
+		];
+		for (const [value, expected] of cases) {
+			const fake = new FakeApp({ 'T.md': `---\ntags: ${value}\n---\nText` });
+			expect((await readNote(fake.app, fake.file('T.md'))).frontmatterTags, value).toEqual(expected);
+		}
+		const legacy = new FakeApp({ 'L.md': '---\ntag: "x, y"\n---\nText' });
+		expect((await readNote(legacy.app, legacy.file('L.md'))).frontmatterTags).toEqual(['x', 'y']);
+	});
+
 	it('reads tags written as a single string (11.4)', async () => {
 		const fake = new FakeApp({ 'Beta.md': '---\ntags: "alpha, beta"\n---\nText' });
 		const note = await readNote(fake.app, fake.file('Beta.md'));
