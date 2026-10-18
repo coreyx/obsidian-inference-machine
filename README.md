@@ -32,12 +32,18 @@ An engine is a provider, a model and its settings. You can save several, choose 
 
 **List models** fetches the provider's models, and **Test** sends a tiny request to check that the engine works. The **context window** is filled in automatically where the provider reports it, or from a list of known models. With it set, Inference Machine warns you before sending a note that looks too long for the model. It never shortens a note.
 
+**Maximum output tokens** is optional. Left empty, the provider's or model's own limit applies, except for Anthropic, which requires one and gets 8,192.
+
+**Reasoning models** work too. Working a model writes between `<think>` and `</think>` is removed before anything reaches your note. If a model spends its whole output limit reasoning and writes no answer, the error says so, so you know to raise the limit or leave it empty.
+
 ### LM Studio
 
 Start LM Studio's local server (**Developer → Start Server**), then click **Detect LM Studio** in the settings. Inference Machine finds the server, lets you choose a model (a loaded one is preselected) and sets up the engine. Detecting again updates that engine rather than adding a second one.
 
 - **Authentication:** if LM Studio's "Require authentication" setting is on, detection asks for an API token. Create one in LM Studio under **Developer → Server Settings → Manage Tokens**.
 - **Streaming:** to see the output as it's written, turn on **Enable CORS** in LM Studio's server settings. Without it, everything still works, but the output appears when it's complete.
+- **Context length:** LM Studio loads a model at its own default length, whatever the engine's context window says. The engine's settings show the length the model is loaded with, and the long-note warning uses the smaller of the two. To have Inference Machine set it, choose **Load the model with this context window** under **Context length in LM Studio**: before each run, the model is reloaded at the engine's context window if LM Studio has it at another length. The popup shows "Loading the model in LM Studio…" while that happens.
+- **Speed:** a model runs much more slowly when it and its context don't fit in your GPU's memory together. If runs are slow, try a smaller context window, or close other programs that use the GPU.
 - **Mobile:** LM Studio runs on a computer, so it can't be detected from a phone. Add an OpenAI-compatible engine with your computer's network address instead, such as `http://192.168.1.20:1234/v1`.
 
 ## Templates
@@ -65,6 +71,22 @@ Every setting below is optional. A template that leaves one unset uses the defau
 - **Location:** a folder, or next to the source note. Missing folders are created. A taken name gets a number (`Alpha - Summary 1`); nothing is ever overwritten.
 - **Engine**, **skip preview**, **open the new note**, and a **link back to the source** under a heading (`# References` by default). The link follows your vault's link settings.
 - **Tag settings**, including preferred tags for AI tagging.
+- **Triggers:** rules that preselect the template in the popup (see below).
+
+### Triggers
+
+Like Web Clipper's template triggers, a template can list rules, one per line, that pick it automatically for matching notes:
+
+| Rule | Matches a note that |
+|---|---|
+| `#reading` | Has the tag `reading`, or a tag nested under it such as `reading/books` |
+| `folder:Meetings` | Is in `Meetings` or a folder inside it |
+| `property:type` | Has a `type` property |
+| `property:type=book` | Has `type` set to `book` |
+| `title:/^Meeting/i` | Has a filename matching the regular expression |
+| `content:/TODO/` | Has contents matching the regular expression |
+
+When you open the popup, the first template in your list with a matching rule is selected, and the popup says which rule matched. Reorder templates in the settings to change which wins. A **Derive with** command always uses its own template, and a template you pick yourself stays selected when you change the source note. The template editor points out any line it can't read.
 
 ### Variables
 

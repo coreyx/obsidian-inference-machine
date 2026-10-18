@@ -12,3 +12,6 @@ All notable changes to Inference Machine are recorded here. The format follows [
 - Tag handling: source tags carried over, one spelling per tag, valid tags only, and optional AI tagging that reuses your vault's tags and prefixes.
 - A warning before sending a note that looks too long for the engine's context window.
 - Example templates to import: Recipe card, Book reference and Movie reference.
+- Template triggers: rules by tag, folder, property, filename or contents that preselect a template in the popup.
+- Support for reasoning models: `<think>` working is removed from responses, the output limit is only sent when set (Anthropic gets 8,192), and an answer cut short by reasoning is reported as such.
+- For LM Studio engines, the context length the model is loaded with is shown in the engine's settings and used for the long-note warning, and an engine can load the model with its own context window before each run.
