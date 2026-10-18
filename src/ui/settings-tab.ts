@@ -303,9 +303,24 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 				action: () => new TemplateEditorModal(this.app, store, { id: this.ctx.newId(), name: 'New template', prompt: '' }, () => this.refresh()).open(),
 			},
 			onDelete: (index) => void this.deleteTemplate(index),
+			// 22.0.8: the list order is the order triggers are matched in.
+			onReorder: (from, to) =>
+				void this.ctx.store
+					.update((data) => {
+						const [moved] = data.templates.splice(from, 1);
+						if (moved) data.templates.splice(to, 0, moved);
+					})
+					.then(() => this.refresh()),
 			items: templates.map((template): SettingGroupItem => {
 				const engine = store.data.engines.find((e) => e.id === template.engineId);
-				const details = [template.origin ? 'built-in' : undefined, engine ? `uses ${engine.name}` : undefined].filter(Boolean).join(' · ');
+				const triggers = template.triggers?.length ?? 0;
+				const details = [
+					template.origin ? 'built-in' : undefined,
+					engine ? `uses ${engine.name}` : undefined,
+					triggers > 0 ? `${triggers} ${triggers === 1 ? 'trigger' : 'triggers'}` : undefined,
+				]
+					.filter(Boolean)
+					.join(' · ');
 				return {
 					name: template.name,
 					desc: details,

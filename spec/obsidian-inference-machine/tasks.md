@@ -456,7 +456,7 @@ Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were add
     3. `matchTemplate(templates, note)` returns the first matching template, in list order, and the trigger that matched.
     4. Tests, aiming for the 95% line and 90% branch target: each rule type, nested tags matching and `projects` not matching `#project` (22.2), properties with list values and case (22.3), the title and content expressions (22.4), folder segments, list order, and bad lines skipped.
 
-- [ ] **TASK-28: Template triggers (UI)**
+- [x] **TASK-28: Template triggers (UI)**
   - **Associated Acceptance Criteria**: `22.1`, `22.5`, `22.6`, `22.7`, `22.8`, `22.9`
   - **Depends on**: TASK-27, TASK-24
   - **Concrete Steps**:

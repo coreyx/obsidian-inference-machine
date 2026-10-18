@@ -18,6 +18,10 @@ export interface DataPatch {
 	globalSettings?: Record<string, unknown>;
 	/** Changes to one template, found by name. */
 	template?: { name: string; changes: Record<string, unknown> };
+	/** Changes to several templates, found by name. */
+	templates?: { name: string; changes: Record<string, unknown> }[];
+	/** Template names in the order to put them first, as dragging in settings would. */
+	order?: string[];
 }
 
 /** Whether this run is the mobile-emulation capability. */
@@ -53,7 +57,13 @@ export async function reset(snapshot: string, mode: EngineMode = 'cors', patch: 
 					data.defaultEngineId = 'mock';
 				}
 				Object.assign(data.globalSettings, change.globalSettings ?? {});
-				if (change.template) Object.assign(data.templates.find((t) => t.name === change.template!.name)!, change.template.changes);
+				for (const each of [...(change.template ? [change.template] : []), ...(change.templates ?? [])]) {
+					Object.assign(data.templates.find((t) => t.name === each.name)!, each.changes);
+				}
+				if (change.order) {
+					const first = change.order.map((name) => data.templates.find((t) => t.name === name)!);
+					data.templates = [...first, ...data.templates.filter((t) => !first.includes(t))];
+				}
 			});
 		},
 		snapshot,

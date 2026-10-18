@@ -1,7 +1,9 @@
 import { Modal, Notice, Platform, Setting, type App, type TFile } from 'obsidian';
 import { resolveRunConfig, type PopupOverrides } from '../core/resolve';
 import type { EngineConfig, OutputLocation, Template } from '../core/schema';
+import { matchTemplate } from '../core/triggers';
 import { isLocalEngine } from '../engines/factory';
+import { readNote } from '../obsidian/note-reader';
 import type { SettingsStore } from '../obsidian/settings-store';
 import type { RequestName, RunController, RunPreview } from '../run/run-controller';
 import { askCollision, confirmLongNote } from './confirm-modals';
@@ -50,6 +52,14 @@ const STATUS_LABELS = { pending: 'Running…', done: 'Done', failed: 'Failed', s
 export class DeriveModal extends Modal {
 	private source: TFile | null = null;
 	private templateId: string | undefined;
+	/** The template to fall back on when no trigger matches: the last used, else the first (22.0.3). */
+	private fallbackTemplateId: string | undefined;
+	/** True once a command or the user chose the template, so triggers no longer change it (22.0.5). */
+	private templatePicked = false;
+	/** The trigger that chose the current template, shown under the dropdown (22.0.4). */
+	private matchedTrigger: string | undefined;
+	/** Guards against an older trigger check finishing after a newer one. */
+	private matchToken = 0;
 	private engineOverride: string | undefined;
 	private locationOverride: OutputLocation | undefined;
 	private error: string[] = [];
@@ -92,9 +102,32 @@ export class DeriveModal extends Modal {
 		this.source = active && active.extension === 'md' ? active : null;
 		const { templates, ui } = this.ctx.store.data;
 		const known = (id: string | undefined) => (id !== undefined && templates.some((t) => t.id === id) ? id : undefined);
-		this.templateId = known(this.options.templateId) ?? known(ui.lastTemplateId) ?? templates[0]?.id;
+		this.fallbackTemplateId = known(ui.lastTemplateId) ?? templates[0]?.id;
+		const commanded = known(this.options.templateId);
+		// 22.0.3: a template command beats triggers, which beat the last-used template.
+		this.templatePicked = commanded !== undefined;
+		this.templateId = commanded ?? this.fallbackTemplateId;
 		// A template command chooses its own settings; otherwise the last location is remembered.
 		if (this.options.templateId === undefined && ui.lastLocation) this.locationOverride = ui.lastLocation;
+		void this.applyTriggers();
+	}
+
+	/**
+	 * Preselects the first template whose trigger matches the source note
+	 * (22.0.2), unless a command or the user already chose one. Reading the
+	 * note is a local file read, so the popup still opens at once (1.0.5);
+	 * the choice is applied when the read finishes.
+	 */
+	private async applyTriggers(): Promise<void> {
+		const token = ++this.matchToken;
+		const source = this.source;
+		if (this.templatePicked) return;
+		const match = source ? matchTemplate(this.ctx.store.data.templates, await readNote(this.app, source)) : undefined;
+		if (token !== this.matchToken || this.templatePicked || this.step !== 'setup') return;
+		const before = `${this.templateId}|${this.matchedTrigger}`;
+		this.templateId = match ? match.template.id : this.fallbackTemplateId;
+		this.matchedTrigger = match?.trigger;
+		if (`${this.templateId}|${this.matchedTrigger}` !== before) this.renderSetup();
 	}
 
 	private get template(): Template | undefined {
@@ -165,18 +198,25 @@ export class DeriveModal extends Modal {
 					new NoteSuggestModal(this.app, (file) => {
 						this.source = file;
 						this.renderSetup();
+						// 22.0.5: a new source note gets its own trigger match, unless the user chose a template.
+						void this.applyTriggers();
 					}).open();
 				}),
 			);
 
-		new Setting(el).setName('Template').addDropdown((dropdown) => {
-			for (const t of data.templates) dropdown.addOption(t.id, t.name);
-			if (this.templateId) dropdown.setValue(this.templateId);
-			dropdown.onChange((id) => {
-				this.templateId = id;
-				this.renderSetup();
+		new Setting(el)
+			.setName('Template')
+			.setDesc(this.matchedTrigger ? `Matched ${this.matchedTrigger}` : '')
+			.addDropdown((dropdown) => {
+				for (const t of data.templates) dropdown.addOption(t.id, t.name);
+				if (this.templateId) dropdown.setValue(this.templateId);
+				dropdown.onChange((id) => {
+					this.templateId = id;
+					this.templatePicked = true;
+					this.matchedTrigger = undefined;
+					this.renderSetup();
+				});
 			});
-		});
 
 		const location = resolved?.location ?? { mode: 'alongside' };
 		const locationSetting = new Setting(el).setName('Output location');

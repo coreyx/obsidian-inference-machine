@@ -158,3 +158,9 @@ textarea.im-import-text {
 	width: 100%;
 	font-family: var(--font-monospace);
 }
+
+.inference-machine-modal textarea.im-triggers {
+	width: 100%;
+	font-family: var(--font-monospace);
+	font-size: var(--font-ui-small);
+}

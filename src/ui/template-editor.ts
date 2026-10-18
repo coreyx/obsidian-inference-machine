@@ -3,6 +3,7 @@ import { DEFAULTS } from '../core/defaults';
 import { collectTemplatePrompts } from '../core/inline';
 import { resolveRunConfig, type RunConfig } from '../core/resolve';
 import { PROPERTY_TYPES, type PropertyType, type TagFormat, type TaggingSettings, type Template } from '../core/schema';
+import { parseTriggers } from '../core/triggers';
 import type { SettingsStore } from '../obsidian/settings-store';
 import { FolderSuggest } from './suggesters';
 import { createTemplateField, type TemplateFieldEditor, type TemplateFieldOptions } from './template-field';
@@ -126,6 +127,7 @@ export class TemplateEditorModal extends Modal {
 			onChange: (v) => setOptional(draft, 'noteContentFormat', v),
 		});
 
+		this.renderTriggers(scroller);
 		this.renderProperties(scroller);
 		this.renderOutput(scroller, inherited);
 		this.renderTagging(scroller, inherited);
@@ -146,6 +148,29 @@ export class TemplateEditorModal extends Modal {
 		setting.settingEl.addClass('im-field-setting');
 		const container = el.createDiv({ cls: 'im-field' });
 		this.fields.push(createTemplateField(container, { ...options, label: name }));
+	}
+
+	/** The template's triggers, one per line, with unreadable lines listed under the field (22.0.6). */
+	private renderTriggers(el: HTMLElement): void {
+		const draft = this.draft;
+		new Setting(el)
+			.setName('Triggers')
+			.setDesc('Preselect this template in the popup for notes that match any of these, one per line: #tag, folder:meetings, property:type=book, title:/regex/ or content:/regex/. The first matching template in the list wins.')
+			.setHeading();
+		const field = el.createDiv({ cls: 'im-field' });
+		const input = field.createEl('textarea', { cls: 'im-triggers', attr: { rows: '3', 'aria-label': 'Triggers', placeholder: 'One rule per line' } });
+		input.value = (draft.triggers ?? []).join('\n');
+		const problems = field.createEl('ul', { cls: 'im-diagnostics', attr: { 'aria-live': 'polite' } });
+		const update = () => {
+			const lines = input.value.split('\n');
+			const kept = lines.map((line) => line.trim()).filter((line) => line !== '');
+			if (kept.length > 0) draft.triggers = kept;
+			else delete draft.triggers;
+			problems.empty();
+			for (const problem of parseTriggers(lines).problems) problems.createEl('li', { cls: 'is-error', text: `Line ${problem.line}: ${problem.message}` });
+		};
+		input.addEventListener('input', update);
+		update();
 	}
 
 	private renderProperties(el: HTMLElement): void {
