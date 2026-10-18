@@ -1,6 +1,7 @@
 import type { ChatRequest, ChatResult } from './chat';
 import { isRecord } from './data-validation';
 import type { NoteSnapshot } from './note';
+import { stripReasoning } from './reasoning';
 import type { ResolvedTagging } from './resolve';
 import type { TagFormat } from './schema';
 
@@ -146,7 +147,10 @@ export async function requestAiTags(
 ): Promise<AiTagsResult> {
 	try {
 		const result = await complete(request, { json: true });
-		const tags = parseTaggingResponse(result.text);
+		const tags = parseTaggingResponse(stripReasoning(result.text));
+		if (tags.length === 0 && result.truncated) {
+			return { tags, notice: `AI tagging used the engine's whole output limit before suggesting any tags, which usually means a reasoning model spent it all reasoning, so the note has no AI tags. Raise the engine's maximum output tokens, or leave it empty to use the model's own limit.` };
+		}
 		if (tags.length === 0) return { tags, notice: 'AI tagging returned no usable tags, so the note has no AI tags.' };
 		return { tags };
 	} catch (error) {

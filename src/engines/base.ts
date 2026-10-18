@@ -11,8 +11,8 @@ export interface EngineDeps {
 	getSecret: (id: string) => string | undefined;
 }
 
-/** Output-token limit used when an engine doesn't set one. Anthropic requires a value; the others get it for consistency. */
-export const DEFAULT_MAX_OUTPUT_TOKENS = 8192;
+/** Output-token limit for Anthropic when the engine sets none: its API requires one (3.0.11). */
+export const ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS = 8192;
 
 /** The tiny request "Test" sends (3.0.5). */
 export const TEST_REQUEST: ChatRequest = { user: 'Reply with the single word OK.', maxOutputTokens: 16 };
@@ -62,8 +62,12 @@ export abstract class BaseEngine implements Engine {
 		return { engineName: this.config.name, url, secret: this.secret() };
 	}
 
-	protected maxOutputTokens(request: ChatRequest): number {
-		return request.maxOutputTokens ?? this.config.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS;
+	/**
+	 * The output-token limit to send, or undefined to send none, so the
+	 * provider's or model's own default applies (3.0.11).
+	 */
+	protected maxOutputTokens(request: ChatRequest): number | undefined {
+		return request.maxOutputTokens ?? this.config.maxOutputTokens;
 	}
 
 	protected temperature(request: ChatRequest): number | undefined {

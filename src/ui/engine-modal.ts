@@ -167,7 +167,7 @@ export class EngineModal extends Modal {
 			if (v === undefined) delete draft.temperature;
 			else draft.temperature = v;
 		});
-		this.numberSetting(el, 'Maximum output tokens', 'Optional. The longest reply the model may write. Defaults to 8,192.', draft.maxOutputTokens, (v) => {
+		this.numberSetting(el, 'Maximum output tokens', "Optional. The longest reply the model may write. Leave empty for the provider's or model's own limit; Anthropic requires one, so it gets 8,192.", draft.maxOutputTokens, (v) => {
 			if (v === undefined) delete draft.maxOutputTokens;
 			else draft.maxOutputTokens = Math.round(v);
 		});

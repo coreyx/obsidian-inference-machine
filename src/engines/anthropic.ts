@@ -1,5 +1,5 @@
 import type { ChatRequest, ChatResult } from '../core/chat';
-import { BaseEngine, dig, list, str, type StreamState } from './base';
+import { ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS, BaseEngine, dig, list, str, type StreamState } from './base';
 import type { ModelInfo } from './engine';
 import { knownContextWindow } from './model-metadata';
 import type { HttpRequest } from './transport';
@@ -22,7 +22,8 @@ export class AnthropicEngine extends BaseEngine {
 	private messages(request: ChatRequest, stream: boolean): HttpRequest {
 		const body: Record<string, unknown> = {
 			model: this.config.model,
-			max_tokens: this.maxOutputTokens(request),
+			// Anthropic's API requires max_tokens, so an unset limit gets a default (3.0.11).
+			max_tokens: this.maxOutputTokens(request) ?? ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS,
 			messages: [{ role: 'user', content: request.user }],
 		};
 		if (request.system) body.system = request.system;

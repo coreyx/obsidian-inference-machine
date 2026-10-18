@@ -40,6 +40,8 @@ export type ErrorKind =
 	| 'context-length'
 	| 'provider'
 	| 'empty'
+	/** The output limit ran out before any answer, as with a reasoning model (8.0.9). */
+	| 'output-limit'
 	| 'cancelled';
 
 /** An engine failure with a plain-language message that never contains a credential (18.0.3). */

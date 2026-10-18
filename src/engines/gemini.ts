@@ -17,7 +17,9 @@ export class GeminiEngine extends BaseEngine {
 	}
 
 	private generate(request: ChatRequest, options: { stream: boolean; json?: boolean }): HttpRequest {
-		const generationConfig: Record<string, unknown> = { maxOutputTokens: this.maxOutputTokens(request) };
+		const generationConfig: Record<string, unknown> = {};
+		const limit = this.maxOutputTokens(request);
+		if (limit !== undefined) generationConfig.maxOutputTokens = limit;
 		const temperature = this.temperature(request);
 		if (temperature !== undefined) generationConfig.temperature = temperature;
 		if (options.json) generationConfig.responseMimeType = 'application/json';

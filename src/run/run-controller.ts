@@ -12,6 +12,7 @@ import { buildTaggingRequest, MAX_VAULT_TAGS, requestAiTags } from '../core/tagg
 import { render } from '../core/template/knap';
 import { buildMainPrompt } from '../core/template/prompt';
 import { buildVariables } from '../core/template/variables';
+import { outputLimitMessage, stripReasoning } from '../core/reasoning';
 import { checkFits } from '../core/tokens';
 import { NormalizedError, type Engine } from '../engines/engine';
 import { sourceLink } from '../obsidian/links';
@@ -219,10 +220,16 @@ export class RunController {
 				// 8.0.6: a failed main request fails the run, keeping the popup's selections for a retry.
 				return { kind: 'failed', error: main.error instanceof Error ? main.error : new Error(String(main.error)), notices: [...notices] };
 			}
-			if (main.value.text.trim() === '') {
-				return { kind: 'failed', error: new NormalizedError('empty', `${engineConfig.name} returned an empty response.`), notices: [...notices] };
+			// 8.0.8: a reasoning model's <think> working isn't part of the note.
+			const answer = stripReasoning(main.value.text);
+			if (answer.trim() === '') {
+				// 8.0.9: an answer missing because the output limit ran out isn't "empty"; say why.
+				const error = main.value.truncated
+					? new NormalizedError('output-limit', outputLimitMessage(engineConfig.name, 'an answer'))
+					: new NormalizedError('empty', `${engineConfig.name} returned an empty response.`);
+				return { kind: 'failed', error, notices: [...notices] };
 			}
-			mainOutput = main.value.text;
+			mainOutput = answer;
 			if (main.value.notice) notices.add(main.value.notice);
 			if (main.value.truncated) {
 				warnings.push(`The output was cut off at ${engineConfig.name}'s output limit. Raise the engine's maximum output tokens to get the rest.`);
@@ -231,7 +238,10 @@ export class RunController {
 
 		let answers = new Map<string, string>();
 		if (requests.inline && inline) {
-			const raw = inline.ok ? parseInlineResponse(inline.value.text, requests.inline.prompts.length) : [];
+			const raw = inline.ok ? parseInlineResponse(stripReasoning(inline.value.text), requests.inline.prompts.length) : [];
+			if (inline.ok && inline.value.truncated && raw.every((answer) => answer === undefined)) {
+				notices.add(outputLimitMessage(engineConfig.name, 'any inline prompt answers'));
+			}
 			const paired = answerMap(requests.inline.prompts, raw);
 			answers = paired.answers;
 			if (!inline.ok) notices.add(`The inline prompt request failed: ${inline.error instanceof Error ? inline.error.message : String(inline.error)}`);

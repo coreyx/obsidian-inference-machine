@@ -39,7 +39,8 @@ export class OpenAiEngine extends BaseEngine {
 		if (request.system) messages.push({ role: 'system', content: request.system });
 		messages.push({ role: 'user', content: request.user });
 		const body: Record<string, unknown> = { model: this.config.model, messages };
-		body[this.compatible ? 'max_tokens' : 'max_completion_tokens'] = this.maxOutputTokens(request);
+		const limit = this.maxOutputTokens(request);
+		if (limit !== undefined) body[this.compatible ? 'max_tokens' : 'max_completion_tokens'] = limit;
 		const temperature = this.temperature(request);
 		if (temperature !== undefined) body.temperature = temperature;
 		if (options.stream) body.stream = true;

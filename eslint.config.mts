@@ -23,6 +23,8 @@ export default defineConfig(
 		'node_modules',
 		'dist',
 		'coverage',
+		'demo/vault/**/*.js',
+		'.obsidian-cache',
 		'esbuild.config.mjs',
 		'version-bump.mjs',
 		'versions.json',

@@ -166,7 +166,7 @@ describe('OpenAI-compatible (3.0.10, 3.8)', () => {
 		const http = new FakeHttp(() => json({ choices: [{ message: { content: 'x' } }] }));
 		await createEngine(compatible, deps(http)).complete({ user: 'x' }, { json: true });
 		expect(http.requests[0]?.url).toBe('http://localhost:1234/v1/chat/completions');
-		expect(body(http.requests[0])).toEqual({ model: 'qwen3-8b', messages: [{ role: 'user', content: 'x' }], max_tokens: 8192 });
+		expect(body(http.requests[0])).toEqual({ model: 'qwen3-8b', messages: [{ role: 'user', content: 'x' }] });
 	});
 
 	it('needs a base URL', async () => {
@@ -204,7 +204,7 @@ describe('Gemini', () => {
 		expect(body(request)).toEqual({
 			contents: [{ role: 'user', parts: [{ text: 'U' }] }],
 			systemInstruction: { parts: [{ text: 'S' }] },
-			generationConfig: { maxOutputTokens: 8192, temperature: 0, responseMimeType: 'application/json' },
+			generationConfig: { temperature: 0, responseMimeType: 'application/json' },
 		});
 	});
 
@@ -238,6 +238,34 @@ describe('Gemini', () => {
 			{ id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', contextWindow: 1048576 },
 			{ id: 'bare' },
 		]);
+	});
+});
+
+describe('output limits (3.0.11, 3.9)', () => {
+	const reply = (r: HttpRequest) =>
+		r.url.includes('anthropic') ? json({ content: [{ type: 'text', text: 'x' }] }) : r.url.includes('googleapis') ? json({ candidates: [] }) : json({ choices: [] });
+
+	it('sends no limit when none is set, except to Anthropic, which gets 8,192', async () => {
+		const sent: Record<string, unknown>[] = [];
+		for (const config of [anthropic, openai, compatible, gemini].map((c) => ({ ...c, maxOutputTokens: undefined }))) {
+			const http = new FakeHttp(reply);
+			await createEngine(config, deps(http)).complete({ user: 'x' });
+			sent.push(body(http.requests[0]));
+		}
+		expect(sent[0]).toMatchObject({ max_tokens: 8192 });
+		expect(sent[1]).not.toHaveProperty('max_completion_tokens');
+		expect(sent[2]).not.toHaveProperty('max_tokens');
+		expect(sent[3]).toEqual({ contents: [{ role: 'user', parts: [{ text: 'x' }] }], generationConfig: {} });
+	});
+
+	it('sends the engine setting when it has one', async () => {
+		const sent: Record<string, unknown>[] = [];
+		for (const config of [anthropic, openai, compatible, gemini].map((c) => ({ ...c, maxOutputTokens: 32000 }))) {
+			const http = new FakeHttp(reply);
+			await createEngine(config, deps(http)).complete({ user: 'x' });
+			sent.push(body(http.requests[0]));
+		}
+		expect(sent.map((b) => b.max_tokens ?? b.max_completion_tokens ?? (b.generationConfig as Record<string, unknown>).maxOutputTokens)).toEqual([32000, 32000, 32000, 32000]);
 	});
 });
 

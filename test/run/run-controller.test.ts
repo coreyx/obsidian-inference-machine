@@ -222,6 +222,37 @@ describe('failures', () => {
 	});
 });
 
+describe('reasoning models (8.0.8, 8.0.9)', () => {
+	it('keeps reasoning out of the note, streamed or not (8.8)', async () => {
+		const { run } = await setup({ responder: replies({ main: '<think>Let me plan this.\nFirst the summary.</think>\n## Summary\nShipping next week.' }) });
+		const text = preview(await run()).text;
+		expect(text).toContain('## Summary\nShipping next week.');
+		expect(text).not.toMatch(/think|plan this/iu);
+	});
+
+	it('explains an output limit spent reasoning instead of reporting an empty response (8.9)', async () => {
+		const { run, engine } = await setup();
+		engine.stream = async () => ({ text: '<think>still working this out', truncated: true, streamed: true });
+		const outcome = await run();
+		expect(outcome).toMatchObject({ kind: 'failed', error: { kind: 'output-limit' } });
+		if (outcome.kind === 'failed') expect(outcome.error.message).toMatch(/^Claude used its whole output limit before writing an answer/u);
+	});
+
+	it('says the same when the inline prompt request runs out (8.9)', async () => {
+		const template: Template = { id: 'inline', name: 'Inline', properties: [{ name: 'description', value: '{{"a description"}}', type: 'text' }] };
+		const { run, engine } = await setup({ templates: [template] });
+		engine.complete = async () => ({ text: '<think>what to say', truncated: true, streamed: false });
+		const { warnings } = preview(await run('inline'));
+		expect(warnings.some((w) => w.startsWith('Claude used its whole output limit before writing any inline prompt answers'))).toBe(true);
+	});
+
+	it('reads inline answers that follow reasoning', async () => {
+		const template: Template = { id: 'inline', name: 'Inline', properties: [{ name: 'description', value: '{{"a description"}}', type: 'text' }] };
+		const { run } = await setup({ templates: [template], responder: replies({ inline: '<think>ok</think>{"prompts_responses":{"prompt_1":"A short one."}}' }) });
+		expect(preview(await run('inline')).text).toContain('description: A short one.');
+	});
+});
+
 describe('cancelling (8.2, 2.4)', () => {
 	it('cancels mid-stream and writes nothing', async () => {
 		const hold = deferred<string>();

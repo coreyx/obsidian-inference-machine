@@ -437,7 +437,7 @@ Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were add
 
 **Done when:** templates are preselected by their triggers, reasoning never reaches a note, and an output limit spent on reasoning is explained, each covered by unit and end-to-end tests.
 
-- [ ] **TASK-26: Output limits and reasoning responses**
+- [x] **TASK-26: Output limits and reasoning responses**
   - **Associated Acceptance Criteria**: `3.9`, `8.8`, `8.9`
   - **Depends on**: TASK-10, TASK-15
   - **Concrete Steps**:
