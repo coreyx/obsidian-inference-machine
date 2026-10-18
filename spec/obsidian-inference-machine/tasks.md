@@ -527,7 +527,7 @@ Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were add
        - SecretStorage keys are per device and must be re-entered on each device
     2. Add a `LICENSE` (MIT) and a `CHANGELOG.md` with an Unreleased section. Add a release workflow that attaches `main.js`, `manifest.json` and `styles.css` to a tag with the bare version number.
 
-- [ ] **TASK-23: Pre-release verification with real models**
+- [x] **TASK-23: Pre-release verification with real models**
   - **Associated Acceptance Criteria**: `3.1`, `4.1`, `4.5`, `8.5`, `15.2`, `19.1`, `20.5`, `20.6`
   - **Depends on**: Milestone 7, so the reasoning-model fixes are verified too
   - **Concrete Steps**:
