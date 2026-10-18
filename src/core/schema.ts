@@ -86,6 +86,8 @@ export interface Template {
 	openAfterCreate?: boolean;
 	/** Present only on built-in templates, so unedited copies can be upgraded (design decision 2). */
 	origin?: TemplateOrigin;
+	/** Rules, one per line, that preselect this template for matching notes (REQ-22). */
+	triggers?: string[];
 }
 
 /** Provenance of a built-in template's copy in user data. */

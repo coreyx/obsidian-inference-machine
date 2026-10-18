@@ -215,6 +215,10 @@ export function checkTemplate(raw: unknown, options: { requireId: boolean }): Ch
 			problems.push(`${label}: references settings aren't valid`);
 		}
 	}
+	if (raw.triggers !== undefined) {
+		if (Array.isArray(raw.triggers) && raw.triggers.every((t) => typeof t === 'string')) template.triggers = [...(raw.triggers)];
+		else problems.push(`${label}: triggers must be a list of text`);
+	}
 	if (
 		isRecord(raw.origin) &&
 		isNonEmptyString(raw.origin.builtInId) &&

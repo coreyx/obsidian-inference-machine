@@ -447,7 +447,7 @@ Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were add
     4. When a response is truncated and empty after stripping, fail the main request with an `output-limit` error that suggests raising maximum output tokens, and say the same in the inline and tagging notices (8.0.9).
     5. Tests: the request bodies with and without the setting for each provider (3.9); stripping in every form, including streamed and fenced output (8.8); the output-limit error and notices from a fixture engine (8.9).
 
-- [ ] **TASK-27: Template triggers (core)**
+- [x] **TASK-27: Template triggers (core)**
   - **Associated Acceptance Criteria**: `22.2`, `22.3`, `22.4`, `22.10`
   - **Depends on**: TASK-12, TASK-19
   - **Concrete Steps**:
