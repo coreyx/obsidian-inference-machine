@@ -84,15 +84,34 @@ export async function openNote(path: string): Promise<void> {
 	await obsidianPage.openFile(path);
 }
 
-/** Opens the popup with the plugin's Open command. */
+/**
+ * Waits until the popup has stopped moving. On mobile it slides up from below
+ * the screen, and a click sent while it moves can land where a button was a
+ * moment ago instead of on the button.
+ */
+export async function waitForPopupSettled(): Promise<void> {
+	let last = '';
+	await browser.waitUntil(
+		async () => {
+			const rect = await browser.execute(() => JSON.stringify(document.querySelector('.inference-machine-modal')?.getBoundingClientRect()));
+			const settled = rect === last;
+			last = rect;
+			return settled;
+		},
+		{ interval: 150, timeout: 10000, timeoutMsg: 'The popup kept moving for 10 seconds' },
+	);
+}
+
+/** Opens the popup with the plugin's Open command, and waits for it to settle. */
 export async function openPopup(): Promise<void> {
 	await browser.executeObsidianCommand('inference-machine:open');
 	await popup().waitForExist();
+	await waitForPopupSettled();
 }
 
 /** Clicks Run and waits for the preview. A timeout reports what the popup showed instead, such as an error. */
 export async function runToPreview(): Promise<void> {
-	// On mobile the popup slides up from below the screen, so Run can't be clicked until it has settled.
+	await waitForPopupSettled();
 	const run = popupButton('Run');
 	await run.waitForClickable();
 	await run.click();
