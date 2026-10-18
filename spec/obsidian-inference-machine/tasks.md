@@ -466,7 +466,7 @@ Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were add
     4. Built-in templates ship with no triggers, so nothing changes until a user adds some.
     5. End-to-end scenarios: a folder trigger preselects (22.1); reordering changes the match (22.5); a "Derive with" command wins (22.6); the hint shows (22.7); an invalid expression doesn't break the popup (22.8); changing the source re-applies triggers (22.9).
 
-- [ ] **TASK-29: LM Studio context length**
+- [x] **TASK-29: LM Studio context length**
   - **Associated Acceptance Criteria**: `4.7`, `4.8`, `4.9`
   - **Depends on**: TASK-11, TASK-15, TASK-24
   - **Concrete Steps**:

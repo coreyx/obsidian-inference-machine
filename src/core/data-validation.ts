@@ -140,7 +140,10 @@ export function checkEngine(raw: unknown): Checked<EngineConfig> {
 	if (raw.contextWindowSource === 'reported' || raw.contextWindowSource === 'table' || raw.contextWindowSource === 'user') {
 		engine.contextWindowSource = raw.contextWindowSource;
 	}
-	if (isRecord(raw.lmStudio) && isPositiveInteger(raw.lmStudio.port)) engine.lmStudio = { port: raw.lmStudio.port };
+	if (isRecord(raw.lmStudio) && isPositiveInteger(raw.lmStudio.port)) {
+		engine.lmStudio = { port: raw.lmStudio.port };
+		if (raw.lmStudio.loadContext === true) engine.lmStudio.loadContext = true;
+	}
 	return { value: engine, problems: [] };
 }
 

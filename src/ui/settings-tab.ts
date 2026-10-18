@@ -6,6 +6,7 @@ import type { Engine } from '../engines/engine';
 import { isLocalEngine } from '../engines/factory';
 import type { Http } from '../engines/transport';
 import type { SettingsStore } from '../obsidian/settings-store';
+import type { LmStudioControl } from '../run/run-controller';
 import { confirmAction } from './confirm-modals';
 import { runLmStudioDetection } from './detect-flow';
 import { EngineModal, PROVIDER_LABELS } from './engine-modal';
@@ -19,6 +20,8 @@ export interface SettingsContext {
 	http: Http;
 	engineFor: (config: EngineConfig) => Engine;
 	newId: () => string;
+	/** LM Studio's native API, for the engine form (4.0.9). */
+	lmStudio?: LmStudioControl;
 	/** Adds the template import and export buttons (REQ-20) to a row. */
 	renderTemplateTransfer?: (container: HTMLElement, refresh: () => void) => void;
 }

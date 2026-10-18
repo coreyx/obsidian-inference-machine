@@ -4,6 +4,7 @@ import type { Engine, ModelInfo } from '../engines/engine';
 import { knownContextWindow } from '../engines/model-metadata';
 import { resetStreamingBlocked } from '../engines/transport';
 import type { SettingsStore } from '../obsidian/settings-store';
+import type { LmStudioControl } from '../run/run-controller';
 
 /** What the engine form needs from the plugin. */
 export interface EngineFormContext {
@@ -11,6 +12,8 @@ export interface EngineFormContext {
 	store: SettingsStore;
 	engineFor: (config: EngineConfig) => Engine;
 	newId: () => string;
+	/** LM Studio's native API, to show how a detected engine's model is loaded (4.0.9). */
+	lmStudio?: LmStudioControl;
 }
 
 /** Display names for the provider types. */
@@ -57,6 +60,9 @@ export class EngineModal extends Modal {
 	private modelDropdown: DropdownComponent | undefined;
 	private contextInput!: TextComponent;
 	private contextSetting!: Setting;
+	private loadSetting: Setting | undefined;
+	/** What LM Studio last said about the model, shown under the context length choice. */
+	private loadedText = '';
 
 	constructor(
 		private readonly ctx: EngineFormContext,
@@ -180,8 +186,10 @@ export class EngineModal extends Modal {
 				draft.contextWindowSource = 'user';
 			}
 			this.refreshContextDesc();
+			this.refreshLoadDesc();
 		});
 		this.refreshContextDesc();
+		this.renderLmStudioLoad(el);
 
 		new Setting(el)
 			.setName('Test')
@@ -232,6 +240,62 @@ export class EngineModal extends Modal {
 		if (lmStudio && provider === 'openai-compatible') this.draft.lmStudio = lmStudio;
 		this.models = [];
 		this.render();
+	}
+
+	/**
+	 * For a detected LM Studio engine, whether runs load the model with the
+	 * context window above, and how LM Studio has it loaded now (4.0.9, 4.0.10).
+	 * LM Studio loads models at its own default length, so a context window
+	 * typed here doesn't change what the model accepts unless this loads it.
+	 */
+	private renderLmStudioLoad(el: HTMLElement): void {
+		this.loadSetting = undefined;
+		const draft = this.draft;
+		if (!draft.lmStudio || !this.compatible) return;
+		this.loadSetting = new Setting(el).setName('Context length in LM Studio').addDropdown((d) =>
+			d
+				.addOption('decide', 'Let LM Studio decide')
+				.addOption('load', 'Load the model with this context window')
+				.setValue(draft.lmStudio?.loadContext ? 'load' : 'decide')
+				.onChange((value) => {
+					if (!draft.lmStudio) return;
+					if (value === 'load') draft.lmStudio.loadContext = true;
+					else delete draft.lmStudio.loadContext;
+					this.refreshLoadDesc();
+				}),
+		);
+		this.refreshLoadDesc();
+		void this.readLoaded();
+	}
+
+	/** Asks LM Studio how the model is loaded. A stale answer for a model no longer chosen is dropped. */
+	private async readLoaded(): Promise<void> {
+		if (!this.loadSetting || !this.ctx.lmStudio || this.draft.model === '') {
+			this.loadedText = '';
+			this.refreshLoadDesc();
+			return;
+		}
+		const model = this.draft.model;
+		this.loadedText = 'Checking LM Studio…';
+		this.refreshLoadDesc();
+		const loaded = await this.ctx.lmStudio.read(this.draft);
+		if (this.draft.model !== model) return;
+		if (!loaded) this.loadedText = "Couldn't ask LM Studio how this model is loaded.";
+		else if (!loaded.loaded) this.loadedText = "LM Studio doesn't have this model loaded.";
+		else if (loaded.contextLength === undefined) this.loadedText = 'LM Studio has this model loaded.';
+		else this.loadedText = `LM Studio has this model loaded at ${loaded.contextLength.toLocaleString()} tokens.`;
+		this.refreshLoadDesc();
+	}
+
+	private refreshLoadDesc(): void {
+		if (!this.loadSetting) return;
+		const draft = this.draft;
+		const choice = draft.lmStudio?.loadContext
+			? draft.contextWindow === undefined
+				? 'Enter a context window above, or runs use whatever LM Studio loaded.'
+				: `Before each run, the model is reloaded at ${draft.contextWindow.toLocaleString()} tokens if LM Studio has it at another length. Reloading can take a while.`
+			: "LM Studio loads the model at its own default length. Long-note warnings use the smaller of that and the context window above.";
+		this.loadSetting.setDesc([choice, this.loadedText].filter((part) => part !== '').join(' '));
 	}
 
 	private refreshContextDesc(): void {
@@ -317,6 +381,8 @@ export class EngineModal extends Modal {
 			this.contextInput.setValue(String(model.contextWindow));
 			this.refreshContextDesc();
 		}
+		this.refreshLoadDesc();
+		void this.readLoaded();
 		this.refreshState();
 	}
 

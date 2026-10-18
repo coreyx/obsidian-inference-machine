@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EngineConfig } from '../../src/core/schema';
-import { detectLmStudio, detectMessage, upsertLmStudioEngine } from '../../src/engines/lmstudio';
+import { detectLmStudio, detectMessage, loadWithContextLength, readLoadedModel, upsertLmStudioEngine } from '../../src/engines/lmstudio';
 import type { HttpRequest, HttpResponse } from '../../src/engines/transport';
 import { FakeHttp, json } from './fake-http';
 
@@ -144,5 +144,71 @@ describe('upsertLmStudioEngine', () => {
 		const engine = upsertLmStudioEngine([reported], { ...choice, model: { id: 'no-window' } }).engine;
 		expect(engine.contextWindow).toBeUndefined();
 		expect(engine.contextWindowSource).toBeUndefined();
+	});
+});
+
+describe('the loaded context length (4.0.9, 4.0.10)', () => {
+	const detected: EngineConfig = { id: 'lm', name: 'LM Studio', provider: 'openai-compatible', baseUrl: 'http://localhost:1234/v1', model: 'qwen/qwen3-8b', lmStudio: { port: 1234 } };
+
+	it('reads the loaded instance and its context length, with the token', async () => {
+		const http = server({ '/api/v1/models': () => json(v1Models) });
+		expect(await readLoadedModel(http, detected, 'secret-token')).toEqual({ loaded: true, contextLength: 8192, instanceIds: ['qwen/qwen3-8b'] });
+		expect(http.requests[0]).toMatchObject({ url: 'http://localhost:1234/api/v1/models', method: 'GET', headers: { authorization: 'Bearer secret-token' } });
+	});
+
+	it('reports a listed model that is not loaded, and one LM Studio does not list', async () => {
+		const http = server({ '/api/v1/models': () => json(v1Models) });
+		expect(await readLoadedModel(http, { ...detected, model: 'google/gemma-3-12b' })).toEqual({ loaded: false, instanceIds: [] });
+		expect(await readLoadedModel(http, { ...detected, model: 'missing' })).toEqual({ loaded: false, instanceIds: [] });
+		expect(http.requests[0]?.headers).toEqual({});
+	});
+
+	it('uses the server from the base URL, falling back to the detected port', async () => {
+		const http = server({ '/api/v1/models': () => json(v1Models) });
+		await readLoadedModel(http, { ...detected, baseUrl: 'http://192.168.1.20:5678/v1' });
+		await readLoadedModel(http, { ...detected, baseUrl: 'not a url', lmStudio: { port: 4321 } });
+		expect(http.requests.map((r) => r.url)).toEqual(['http://192.168.1.20:5678/api/v1/models', 'http://localhost:4321/api/v1/models']);
+	});
+
+	it('returns nothing when LM Studio is unreachable, too old for the v1 API, or answers with something unreadable', async () => {
+		const unreachable = new FakeHttp(() => {
+			throw new TypeError('net::ERR_CONNECTION_REFUSED');
+		});
+		expect(await readLoadedModel(unreachable, detected)).toBeUndefined();
+		expect(await readLoadedModel(server({}), detected)).toBeUndefined();
+		expect(await readLoadedModel(server({ '/api/v1/models': () => ({ status: 200, text: '<html>' }) }), detected)).toBeUndefined();
+	});
+
+	it('unloads every instance, then loads the model with the context length', async () => {
+		const http = server({ '/api/v1/models/unload': () => json({}), '/api/v1/models/load': () => json({ status: 'loaded' }) });
+		await loadWithContextLength(http, detected, 65536, { loaded: true, contextLength: 8192, instanceIds: ['qwen/qwen3-8b', 'qwen/qwen3-8b:2'] }, 'secret-token');
+		expect(http.requests.map((r) => [new URL(r.url).pathname, JSON.parse(r.body as string) as unknown])).toEqual([
+			['/api/v1/models/unload', { instance_id: 'qwen/qwen3-8b' }],
+			['/api/v1/models/unload', { instance_id: 'qwen/qwen3-8b:2' }],
+			['/api/v1/models/load', { model: 'qwen/qwen3-8b', context_length: 65536 }],
+		]);
+		for (const request of http.requests) expect(request).toMatchObject({ method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer secret-token' } });
+	});
+
+	it('loads a model that is not loaded without unloading anything', async () => {
+		const http = server({ '/api/v1/models/load': () => json({}) });
+		await loadWithContextLength(http, detected, 4096, { loaded: false, instanceIds: [] });
+		expect(http.requests.map((r) => new URL(r.url).pathname)).toEqual(['/api/v1/models/load']);
+	});
+
+	it('throws the LM Studio message when a load fails, and the status when there is none', async () => {
+		const failing = server({ '/api/v1/models/load': () => json({ error: { message: 'Not enough memory to load the model.' } }, 500) });
+		await expect(loadWithContextLength(failing, detected, 65536, { loaded: false, instanceIds: [] })).rejects.toThrow(
+			"LM Studio couldn't load qwen/qwen3-8b with a 65,536-token context (HTTP 500): Not enough memory to load the model.",
+		);
+		const plain = server({ '/api/v1/models/unload': () => ({ status: 404, text: 'Not Found' }) });
+		await expect(loadWithContextLength(plain, detected, 4096, { loaded: true, instanceIds: ['x'] })).rejects.toThrow("LM Studio couldn't unload qwen/qwen3-8b (HTTP 404).");
+	});
+
+	it('says LM Studio is unreachable when the load request fails to send', async () => {
+		const unreachable = new FakeHttp(() => {
+			throw new TypeError('net::ERR_CONNECTION_REFUSED');
+		});
+		await expect(loadWithContextLength(unreachable, detected, 4096, { loaded: false, instanceIds: [] })).rejects.toThrow(/^LM Studio isn't reachable, so it couldn't load qwen\/qwen3-8b/u);
 	});
 });

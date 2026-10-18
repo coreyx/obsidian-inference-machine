@@ -50,7 +50,11 @@ export interface EngineConfig {
 	/** Where `contextWindow` came from, so a reported value can be told apart from a typed one. */
 	contextWindowSource?: 'reported' | 'table' | 'user';
 	/** Set by LM Studio detection, so detecting again updates this engine instead of adding one (4.4). */
-	lmStudio?: { port: number };
+	lmStudio?: {
+		port: number;
+		/** Load the model with `contextWindow` before each run, instead of letting LM Studio decide (4.0.10). */
+		loadContext?: boolean;
+	};
 }
 
 /** Where the output note goes: a fixed folder, or the source note's folder. */

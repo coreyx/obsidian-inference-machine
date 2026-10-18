@@ -15,6 +15,7 @@ import { buildVariables } from '../core/template/variables';
 import { outputLimitMessage, stripReasoning } from '../core/reasoning';
 import { checkFits } from '../core/tokens';
 import { NormalizedError, type Engine } from '../engines/engine';
+import type { LoadedModel } from '../engines/lmstudio';
 import { sourceLink } from '../obsidian/links';
 import { readNote } from '../obsidian/note-reader';
 import { createNote, fileAt, notePath, openNote, outputFolder, planPath } from '../obsidian/note-writer';
@@ -36,6 +37,16 @@ export interface RunHost {
 	tagIndex: VaultTagIndex;
 	yaml: { parse: ParseYaml; stringify: StringifyYaml };
 	now?: () => Date;
+	/** LM Studio's native API, for engines made by detection (4.0.9, 4.0.10). */
+	lmStudio?: LmStudioControl;
+}
+
+/** Reads and sets how LM Studio has an engine's model loaded. */
+export interface LmStudioControl {
+	/** How the model is loaded, or undefined when LM Studio can't be asked. */
+	read(engine: EngineConfig): Promise<LoadedModel | undefined>;
+	/** Loads the model with a context length, unloading its current instances first. */
+	load(engine: EngineConfig, contextLength: number, current: LoadedModel): Promise<void>;
 }
 
 /** What to run. */
@@ -46,7 +57,7 @@ export interface RunInput {
 }
 
 /** The three requests a run can send (design decision 4). */
-export type RequestName = 'main' | 'inline' | 'tags';
+export type RequestName = 'main' | 'inline' | 'tags' | 'model';
 
 /** A request too large for the engine's context window (REQ-16). */
 export interface OversizedRequest {
@@ -180,11 +191,35 @@ export class RunController {
 		const requests = await this.buildRequests(template, config, note, now, addNotices);
 		this.check(token);
 
+		let contextWindow = engineConfig.contextWindow;
+		const lmStudio = this.host.lmStudio;
+		if (engineConfig.lmStudio && lmStudio) {
+			const loaded = await lmStudio.read(engineConfig);
+			this.check(token);
+			let loadedLength = loaded?.contextLength;
+			const wanted = engineConfig.contextWindow;
+			// 4.0.10: load the model with the engine's context window when asked to.
+			if (engineConfig.lmStudio.loadContext && wanted !== undefined && loaded && loaded.contextLength !== wanted) {
+				callbacks.onStatus?.('model', 'pending');
+				try {
+					await lmStudio.load(engineConfig, wanted, loaded);
+				} catch (error) {
+					callbacks.onStatus?.('model', 'failed');
+					return { kind: 'failed', error: error instanceof Error ? error : new Error(String(error)), notices: [...notices] };
+				}
+				this.check(token);
+				callbacks.onStatus?.('model', 'done');
+				loadedLength = wanted;
+			}
+			// 4.0.9: warn against what LM Studio will actually accept.
+			if (loadedLength !== undefined) contextWindow = contextWindow === undefined ? loadedLength : Math.min(contextWindow, loadedLength);
+		}
+
 		// 16.0.1: size-check what will be sent, before sending anything.
 		const oversized: OversizedRequest[] = [];
 		for (const [name, request] of [['main', requests.main], ['inline', requests.inline?.request]] as const) {
 			if (!request) continue;
-			const fit = checkFits(`${request.system ?? ''}\n${request.user}`, engineConfig.contextWindow, engineConfig.maxOutputTokens);
+			const fit = checkFits(`${request.system ?? ''}\n${request.user}`, contextWindow, engineConfig.maxOutputTokens);
 			if (fit.status === 'over') oversized.push({ request: name, estimate: fit.estimate, limit: fit.limit });
 		}
 		if (oversized.length > 0 && callbacks.confirmLongNote && !(await callbacks.confirmLongNote(oversized))) return { kind: 'declined' };

@@ -2,11 +2,12 @@ import { ButtonComponent, Notice, parseYaml, Plugin, stringifyYaml } from 'obsid
 import type { EngineConfig } from './core/schema';
 import { createEngine } from './engines/factory';
 import type { Engine } from './engines/engine';
+import { loadWithContextLength, readLoadedModel } from './engines/lmstudio';
 import { obsidianHttp, resetStreamingBlocked } from './engines/transport';
 import { Secrets } from './obsidian/secrets';
 import { newId, SettingsStore } from './obsidian/settings-store';
 import { VaultTagIndex } from './obsidian/tag-index';
-import { RunController } from './run/run-controller';
+import { RunController, type LmStudioControl } from './run/run-controller';
 import { TemplateCommands } from './ui/commands';
 import { DeriveModal, type DeriveOptions } from './ui/derive-modal';
 import { InferenceMachineSettingTab } from './ui/settings-tab';
@@ -46,6 +47,7 @@ export default class InferenceMachinePlugin extends Plugin {
 			engineFor: (config) => this.engineFor(config),
 			tagIndex: this.tagIndex,
 			yaml: { parse: (text) => parseYaml(text) as unknown, stringify: stringifyYaml },
+			lmStudio: this.lmStudioControl(),
 		});
 
 		// Entry points (REQ-1). Opening the popup reads only local state (1.0.5).
@@ -64,6 +66,7 @@ export default class InferenceMachinePlugin extends Plugin {
 				http: obsidianHttp,
 				engineFor: (config) => this.engineFor(config),
 				newId,
+				lmStudio: this.lmStudioControl(),
 				renderTemplateTransfer: (container, refresh) => {
 					new ButtonComponent(container).setButtonText('Import').onClick(() => new ImportModal(this.app, this.store, newId, refresh).open());
 					new ButtonComponent(container).setButtonText('Export').onClick(() => new ExportModal(this.app, this.store).open());
@@ -81,6 +84,15 @@ export default class InferenceMachinePlugin extends Plugin {
 	/** The client for a saved engine, reading its key from SecretStorage at request time. */
 	engineFor(config: EngineConfig): Engine {
 		return createEngine(config, { http: obsidianHttp, getSecret: (id) => this.secrets.get(id) });
+	}
+
+	/** LM Studio's native API, authenticated with the engine's own token when it has one (4.0.9, 4.0.10). */
+	lmStudioControl(): LmStudioControl {
+		const token = (engine: EngineConfig) => (engine.secretId ? this.secrets.get(engine.secretId) : undefined);
+		return {
+			read: (engine) => readLoadedModel(obsidianHttp, engine, token(engine)),
+			load: (engine, contextLength, current) => loadWithContextLength(obsidianHttp, engine, contextLength, current, token(engine)),
+		};
 	}
 
 	/** Opens the Inference Machine popup (1.0.1, 1.0.2), optionally with a template preselected (1.0.3). */

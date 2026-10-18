@@ -64,7 +64,7 @@ describe('checkEngine', () => {
 			maxOutputTokens: 2048,
 			contextWindow: 32768,
 			contextWindowSource: 'reported',
-			lmStudio: { port: 1234 },
+			lmStudio: { port: 1234, loadContext: true },
 			unknownField: 'dropped',
 		};
 		const { unknownField: _dropped, ...expected } = raw;
@@ -79,6 +79,12 @@ describe('checkEngine', () => {
 	it('drops invalid optional numbers', () => {
 		const engine = checkEngine({ id: 'e', name: 'n', provider: 'gemini', model: 'm', maxOutputTokens: -5, contextWindowSource: 'guess' }).value;
 		expect(engine).toEqual({ id: 'e', name: 'n', provider: 'gemini', model: 'm' });
+	});
+
+	it('keeps the LM Studio link only with a valid port, and the load choice only when on', () => {
+		const base = { id: 'e', name: 'n', provider: 'openai-compatible', model: 'm', baseUrl: 'http://localhost:1234/v1' };
+		expect(checkEngine({ ...base, lmStudio: { port: 0, loadContext: true } }).value?.lmStudio).toBeUndefined();
+		expect(checkEngine({ ...base, lmStudio: { port: 1234, loadContext: 'yes' } }).value?.lmStudio).toEqual({ port: 1234 });
 	});
 });
 

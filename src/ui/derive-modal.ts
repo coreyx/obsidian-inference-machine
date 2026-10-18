@@ -32,7 +32,9 @@ const PROVIDER_NAMES: Record<EngineConfig['provider'], string> = {
 	'openai-compatible': 'an OpenAI-compatible server',
 };
 
-const REQUEST_LABELS: Record<RequestName, string> = { main: 'Main output', inline: 'Inline prompts', tags: 'AI tags' };
+const REQUEST_LABELS: Record<RequestName, string> = { main: 'Main output', inline: 'Inline prompts', tags: 'AI tags', model: 'LM Studio model' };
+/** The model row reads as a sentence, since it appears only while LM Studio reloads the model (4.0.10). */
+const MODEL_STATUS_TEXT = { pending: 'Loading the model in LM Studio…', done: 'Model loaded in LM Studio', failed: "LM Studio couldn't load the model", skipped: '' } as const;
 const STATUS_LABELS = { pending: 'Running…', done: 'Done', failed: 'Failed', skipped: 'Not needed' } as const;
 
 /**
@@ -296,6 +298,13 @@ export class DeriveModal extends Modal {
 			{ sourcePath: source.path, templateId: template.id, popup: this.popup() },
 			{
 				onStatus: (name, status) => {
+					if (name === 'model') {
+						// Loading comes before every request, so its row goes first, and only when a load happens.
+						const row = rows.get('model') ?? statusList.createEl('li', { prepend: true });
+						rows.set('model', row);
+						row.setText(MODEL_STATUS_TEXT[status]);
+						return;
+					}
 					const row = rows.get(name);
 					if (!row) return;
 					if (status === 'skipped') row.remove();

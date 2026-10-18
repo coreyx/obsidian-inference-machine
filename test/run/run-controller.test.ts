@@ -6,7 +6,8 @@ import type { EngineConfig, PluginData, Template } from '../../src/core/schema';
 import { NormalizedError } from '../../src/engines/engine';
 import { SettingsStore } from '../../src/obsidian/settings-store';
 import { VaultTagIndex } from '../../src/obsidian/tag-index';
-import { RunController, type RunCallbacks, type RunOutcome } from '../../src/run/run-controller';
+import type { LoadedModel } from '../../src/engines/lmstudio';
+import { RunController, type LmStudioControl, type RunCallbacks, type RunOutcome } from '../../src/run/run-controller';
 import { FakeApp } from '../fake-app';
 import { FakeEngine, type Responder } from '../fixtures/fake-engine';
 
@@ -37,6 +38,7 @@ interface Setup {
 	responder?: Responder;
 	data?: (d: PluginData) => void;
 	notes?: Record<string, string>;
+	lmStudio?: LmStudioControl;
 }
 
 async function setup(options: Setup = {}) {
@@ -51,7 +53,7 @@ async function setup(options: Setup = {}) {
 	await store.load();
 	const engine = new FakeEngine(options.responder ?? replies({ main: '## Summary\nShipping next week.' }));
 	const tagIndex = new VaultTagIndex(fake.app);
-	const controller = new RunController({ app: fake.app, store, engineFor: () => engine, tagIndex, yaml, now: () => now });
+	const controller = new RunController({ app: fake.app, store, engineFor: () => engine, tagIndex, yaml, now: () => now, lmStudio: options.lmStudio });
 	const run = (templateId = 'summary', callbacks: RunCallbacks = {}, popup = {}) =>
 		controller.start({ sourcePath: 'Projects/Alpha.md', templateId, popup }, callbacks);
 	return { fake, store, engine, controller, run, tagIndex, saved };
@@ -344,6 +346,123 @@ describe('long notes (REQ-16)', () => {
 		let asked = false;
 		await run('summary', { confirmLongNote: async () => (asked = true) });
 		expect(asked).toBe(false);
+	});
+});
+
+describe('LM Studio context length (4.0.9, 4.0.10)', () => {
+	const lmEngine: EngineConfig = { id: 'lm', name: 'LM Studio', provider: 'openai-compatible', baseUrl: 'http://localhost:1234/v1', model: 'qwen', contextWindow: 1000, lmStudio: { port: 1234 } };
+	const reloading = (changes: Partial<EngineConfig> = {}): EngineConfig => ({ ...lmEngine, ...changes, lmStudio: { port: 1234, loadContext: true } });
+
+	/** A scripted LM Studio that records loads. */
+	function lmStudio(state: LoadedModel | undefined, load: (contextLength: number) => Promise<void> = async () => undefined) {
+		const loads: { contextLength: number; current: LoadedModel }[] = [];
+		const control: LmStudioControl = {
+			read: async () => (state ? structuredClone(state) : undefined),
+			load: async (_engine, contextLength, current) => {
+				loads.push({ contextLength, current });
+				await load(contextLength);
+			},
+		};
+		return { control, loads };
+	}
+
+	/** Runs and returns what the long-note warning was asked about. */
+	async function askedAbout(run: (templateId?: string, callbacks?: RunCallbacks) => Promise<RunOutcome>): Promise<unknown[]> {
+		const asked: unknown[] = [];
+		await run('summary', {
+			confirmLongNote: async (oversized) => {
+				asked.push(...oversized);
+				return true;
+			},
+		});
+		return asked;
+	}
+
+	it('warns against the length LM Studio has loaded when it is smaller than the setting (4.7)', async () => {
+		const lm = lmStudio({ loaded: true, contextLength: 20, instanceIds: ['qwen'] });
+		const { run } = await setup({ engines: [lmEngine], lmStudio: lm.control });
+		expect(await askedAbout(run)).toEqual([{ request: 'main', estimate: expect.any(Number), limit: 20 }]);
+		expect(lm.loads).toEqual([]);
+	});
+
+	it('uses the loaded length when the engine has no context window set', async () => {
+		const noWindow: EngineConfig = { ...lmEngine };
+		delete noWindow.contextWindow;
+		const { run } = await setup({ engines: [noWindow], lmStudio: lmStudio({ loaded: true, contextLength: 20, instanceIds: ['qwen'] }).control });
+		expect(await askedAbout(run)).toHaveLength(1);
+	});
+
+	it('keeps the setting when LM Studio has the model loaded with more, or can not be asked', async () => {
+		for (const state of [{ loaded: true, contextLength: 5000, instanceIds: ['qwen'] }, undefined]) {
+			const { run } = await setup({ engines: [{ ...lmEngine, contextWindow: 20 }], lmStudio: lmStudio(state).control });
+			expect(await askedAbout(run)).toEqual([{ request: 'main', estimate: expect.any(Number), limit: 20 }]);
+		}
+	});
+
+	it('reloads the model at the context window first, and says so (4.8)', async () => {
+		const current = { loaded: true, contextLength: 8192, instanceIds: ['qwen'] };
+		const lm = lmStudio(current);
+		const { run, engine } = await setup({ engines: [reloading({ contextWindow: 65536 })], lmStudio: lm.control });
+		const statuses: string[] = [];
+		const outcome = await run('summary', { onStatus: (name, status) => statuses.push(`${name}:${status}`) });
+		expect(outcome.kind).toBe('preview');
+		expect(lm.loads).toEqual([{ contextLength: 65536, current }]);
+		expect(statuses.slice(0, 2)).toEqual(['model:pending', 'model:done']);
+		expect(engine.received).toHaveLength(1);
+	});
+
+	it('loads a model that is not loaded, then warns against the new length', async () => {
+		const lm = lmStudio({ loaded: false, instanceIds: [] });
+		const { run } = await setup({ engines: [reloading({ contextWindow: 20 })], lmStudio: lm.control });
+		expect(await askedAbout(run)).toEqual([{ request: 'main', estimate: expect.any(Number), limit: 20 }]);
+		expect(lm.loads.map((l) => l.contextLength)).toEqual([20]);
+	});
+
+	it('does not reload a model already at the right length, or when LM Studio decides', async () => {
+		const atLength = lmStudio({ loaded: true, contextLength: 1000, instanceIds: ['qwen'] });
+		await (await setup({ engines: [reloading()], lmStudio: atLength.control })).run();
+		expect(atLength.loads).toEqual([]);
+		const deciding = lmStudio({ loaded: true, contextLength: 8192, instanceIds: ['qwen'] });
+		await (await setup({ engines: [lmEngine], lmStudio: deciding.control })).run();
+		expect(deciding.loads).toEqual([]);
+	});
+
+	it('fails the run with the message from LM Studio when the load fails, sending nothing', async () => {
+		const message = 'LM Studio could not load qwen (HTTP 500): Not enough memory.';
+		const lm = lmStudio({ loaded: true, contextLength: 8192, instanceIds: ['qwen'] }, async () => {
+			throw new Error(message);
+		});
+		const { run, engine } = await setup({ engines: [reloading()], lmStudio: lm.control });
+		const statuses: string[] = [];
+		const outcome = await run('summary', { onStatus: (name, status) => statuses.push(`${name}:${status}`) });
+		expect(outcome).toMatchObject({ kind: 'failed', error: { message } });
+		expect(statuses).toEqual(['model:pending', 'model:failed']);
+		expect(engine.received).toEqual([]);
+	});
+
+	it('cancels while the model is loading', async () => {
+		const hold = deferred<void>();
+		const lm = lmStudio({ loaded: true, contextLength: 8192, instanceIds: ['qwen'] }, () => hold.promise);
+		const { run, controller, engine } = await setup({ engines: [reloading()], lmStudio: lm.control });
+		const outcome = run();
+		while (lm.loads.length === 0) await new Promise((r) => setTimeout(r, 0));
+		controller.cancel();
+		hold.resolve();
+		expect(await outcome).toEqual({ kind: 'cancelled' });
+		expect(engine.received).toEqual([]);
+	});
+
+	it('leaves engines that LM Studio detection did not make alone', async () => {
+		let read = false;
+		const control: LmStudioControl = {
+			read: async () => {
+				read = true;
+				return undefined;
+			},
+			load: async () => undefined,
+		};
+		await (await setup({ lmStudio: control })).run();
+		expect(read).toBe(false);
 	});
 });
 
