@@ -82,6 +82,7 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **3.0.8 (Unwanted Behavior)**: If no engine is configured, then the popup shall explain that an engine is needed and link to the engine settings instead of offering to run.
 - **3.0.9 (Event-Driven)**: When the provider or LM Studio reports a model's context window, the system shall fill in the engine's context window setting automatically, and the user shall be able to edit it (Q20).
 - **3.0.10 (Ubiquitous)**: OpenAI-compatible engines shall accept an optional API key, stored like any other credential (18.0.4). When a key is set, every request to that engine shall send it as `Authorization: Bearer <key>`, including model listing and "Test". When no key is set, no `Authorization` header shall be sent (Q25).
+- **3.0.11 (Ubiquitous)**: When an engine's maximum output tokens setting is empty, the system shall send no output limit, so the provider's or model's own default applies. The exception is Anthropic, whose API requires a limit: there the system shall send 8,192 (Q34).
 
 #### Acceptance Criteria
 - **3.1**: An engine of each provider type can be saved and passes "Test" against a working endpoint.
@@ -92,6 +93,7 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **3.6**: A fresh install with no engines shows the "configure an engine" message in the popup.
 - **3.7**: An LM Studio engine created by detection has its context window filled in when LM Studio reports one, and the user can change it.
 - **3.8**: An OpenAI-compatible engine with an API key sends `Authorization: Bearer <key>` on generation, model listing and "Test". The same engine with no key sends no `Authorization` header.
+- **3.9**: An OpenAI, Gemini or OpenAI-compatible engine with no maximum output tokens set sends no output limit. An Anthropic engine with none set sends `max_tokens: 8192`. Any engine with the setting filled sends that value.
 
 ### REQ-4: LM Studio auto-detection
 
@@ -105,6 +107,8 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **4.0.6 (State-Driven)**: While running on Obsidian mobile, the system shall hide or disable "Detect LM Studio" (see REQ-17).
 - **4.0.7 (Unwanted Behavior)**: If LM Studio answers detection with an authentication error (HTTP 401 or 403), then the system shall not report it as unreachable. It shall ask for an LM Studio API token, store it like any other credential (18.0.4), retry detection with it, and create an engine that sends it (3.0.10) (Q25).
 - **4.0.8 (Ubiquitous)**: The message shown for an LM Studio authentication error shall say where tokens are created in LM Studio (Developer → Server Settings → Manage Tokens).
+- **4.0.9 (Ubiquitous)**: For an LM Studio engine, the system shall read the context length the model is actually loaded with before each run, and use the smaller of that and the engine's context window setting for the long-note warning (16.0.1). The engine settings shall show the loaded context length, or that the model isn't loaded (Q35).
+- **4.0.10 (Optional Feature)**: Where an LM Studio engine is set to "Load the model with this context window" (the default is "Let LM Studio decide"), the system shall, before each run, check whether the model is loaded with the engine's context window. If it isn't, the system shall unload it and load it with that context length, and show that the model is loading while it waits (Q35).
 
 #### Acceptance Criteria
 - **4.1**: With LM Studio's server running and one model loaded, a single click creates a working engine. A test request succeeds with no manual entry.
@@ -113,6 +117,9 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **4.4**: Clicking "Detect" again when an LM Studio engine already exists updates that engine rather than creating a duplicate.
 - **4.5**: With LM Studio's "Require authentication" on, detection asks for a token. Given a valid one, it creates a working engine whose requests carry the token.
 - **4.6**: With "Require authentication" on and an invalid token, detection reports an authentication error that names where to manage tokens, not "LM Studio isn't reachable".
+- **4.7**: With LM Studio running the model at 32,768 tokens and the engine's context window set to 65,536 with "Let LM Studio decide", a note of about 40,000 tokens triggers the long-note warning, giving the limit from 32,768.
+- **4.8**: With "Load the model with this context window" and 65,536, a run first shows that the model is loading, and afterwards LM Studio reports the model loaded at 65,536 tokens.
+- **4.9**: The settings for an LM Studio engine show the context length LM Studio has the model loaded with, or that it isn't loaded.
 
 ### REQ-5: Templates
 
@@ -199,6 +206,8 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **8.0.5 (Unwanted Behavior)**: If the AI output is wrapped in a single enclosing code fence (for example, ```` ```markdown … ``` ````), then the system shall remove the fence.
 - **8.0.6 (Unwanted Behavior)**: If the request fails (network error, authentication error, rate limit, provider error or empty response), then the system shall show the error in plain language, keep the popup open with its selections, and create no note.
 - **8.0.7 (Unwanted Behavior)**: If the AI output begins with a YAML frontmatter block, then the system shall remove the block from the body and merge its properties into the output note's frontmatter. The template's own properties win on conflicts, and any `tags` in the block go through the tag pipeline (REQ-11 to REQ-14) as AI tags (Q18).
+- **8.0.8 (Unwanted Behavior)**: If a response contains reasoning wrapped in `<think>…</think>`, or starts with reasoning that ends at a `</think>` tag, then the system shall remove the reasoning before using the response: the main output, the inline prompt response and the AI tagging response. The reasoning is the model's working, not part of its answer (Q33).
+- **8.0.9 (Unwanted Behavior)**: If a request ends at the output-token limit without any answer text, as happens when a reasoning model spends the whole limit reasoning, then the system shall say so in plain language and suggest raising the engine's maximum output tokens, rather than reporting an empty response. For the inline prompt and AI tagging requests, the notice shall say the same (Q33).
 
 #### Acceptance Criteria
 - **8.1**: With defaults and a built-in template, the flow from popup to preview needs one click on "Run" after the popup opens.
@@ -208,6 +217,8 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **8.5**: With a streaming-capable provider, text appears in the preview before the response is complete.
 - **8.6**: Output that starts with `---\nstatus: draft\ntags: [x]\n---` yields a note whose frontmatter has `status: draft` and tag `x` (after dedup), with no second frontmatter block in the body.
 - **8.7**: When the AI frontmatter and the template both set `status`, the template's value is kept.
+- **8.8**: A response of `<think>planning…</think>` followed by `## Summary` and text produces a note whose body starts at `## Summary`, with no reasoning in it. A streamed response does the same.
+- **8.9**: A fixture engine that stops at the output limit with no answer text produces an error saying the model used its whole output limit before answering, and suggesting a higher maximum output tokens. The same case in the inline prompt request produces a notice saying so.
 
 ### REQ-9: Preview and edit
 
@@ -411,7 +422,7 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 
 - **19.0.1 (Ubiquitous)**: The popup and settings shall use Obsidian's theme variables and components, so they match light, dark and community themes.
 - **19.0.2 (Ubiquitous)**: Every popup action shall be reachable by keyboard, with a visible focus state.
-- **19.0.3 (Ubiquitous)**: The popup shall remember the last-used template and output location between runs, unless a template command preselects otherwise.
+- **19.0.3 (Ubiquitous)**: The popup shall remember the last-used template and output location between runs, unless a template command or a template trigger (REQ-22) preselects otherwise.
 
 #### Acceptance Criteria
 - **19.1**: The popup is readable and consistent under the default light and dark themes.
@@ -463,9 +474,39 @@ Requirements use the Easy Approach to Requirements Syntax (EARS):
 - **21.7**: `{{"summarize"}}` written inside the main prompt is flagged in the template editor.
 - **21.8**: A template without inline prompts sends no inline prompt request.
 
+### REQ-22: Template triggers
+
+**User Story**: As a user, I want the popup to pick the right template for the note I'm on, by its tags, folder, properties, title or contents, so that I don't choose it by hand each time, as Web Clipper's template triggers do for web pages (Q30).
+
+- **22.0.1 (Ubiquitous)**: A template may list triggers, one per line. Each trigger is one of:
+  - `#tag`: the note has the tag, in its frontmatter or inline. A trigger also matches nested tags under it, so `#project` matches `project/beta`. Case is ignored.
+  - `folder:<path>`: the note is in that folder or a folder inside it.
+  - `property:<key>` or `property:<key>=<value>`: the note's frontmatter has the key, or has it with that value. Values compare ignoring case, and a list value matches if any item does.
+  - `title:/<regex>/<flags>`: the regular expression matches the note's filename without extension.
+  - `content:/<regex>/<flags>`: the regular expression matches the note's full contents.
+- **22.0.2 (Event-Driven)**: When the popup opens on a source note and no template command chose the template, the system shall preselect the first template, in template order, that has a trigger matching the note (Q31).
+- **22.0.3 (Ubiquitous)**: The system shall choose the popup's template in this order: a template command, then a matching trigger, then the last-used template (19.0.3), then the first template (Q32).
+- **22.0.4 (Ubiquitous)**: When a trigger chose the template, the popup shall show which trigger matched.
+- **22.0.5 (Event-Driven)**: When the user changes the source note in the popup, the system shall apply the triggers to the new note, unless the user has already chosen a template in that popup.
+- **22.0.6 (Unwanted Behavior)**: If a trigger line can't be read, or its regular expression is invalid, then the system shall flag it in the template editor and ignore it when matching.
+- **22.0.7 (Ubiquitous)**: Triggers shall only preselect a template. They never run one.
+- **22.0.8 (Ubiquitous)**: The system shall let the user reorder templates in settings, which sets the order triggers are matched in.
+
+#### Acceptance Criteria
+- **22.1**: A template with trigger `folder:Meetings` is preselected when the popup opens on `Meetings/2026-10-14 launch sync.md`, and isn't when it opens on `Reading/dune-notes.md`.
+- **22.2**: `#project` matches a note tagged `project/beta`, in frontmatter or inline. It doesn't match `projects`.
+- **22.3**: `property:type=book` matches a note with `type: Book`. `property:source` matches any note with a `source` property.
+- **22.4**: `title:/^\d{4}-\d{2}-\d{2}/` matches `2026-10-01.md`, and `content:/recipe/i` matches a note containing "Recipe".
+- **22.5**: When two templates match a note, the one higher in the template list is preselected. Moving the other above it changes the preselection.
+- **22.6**: "Derive with Action items" opens with Action items selected even when another template's trigger matches the note.
+- **22.7**: For a template chosen by a trigger, the popup shows the trigger, such as "Matched folder:Meetings".
+- **22.8**: A trigger with an invalid regular expression, such as `title:/[/`, is flagged in the template editor, and the popup still opens and matches the template's other triggers.
+- **22.9**: Changing the source note in the popup re-applies triggers. After the user picks a template in that popup, changing the source note keeps their pick.
+- **22.10**: Exporting and importing a template keeps its triggers.
+
 ## 3. Open Questions
 
-Each question has a stable ID, continuing from `product.md`. When a question is answered, its ID is retired and never reused. Q23–Q25 came from the `tech.md` review, Q26–Q27 from the [Web Clipper template findings](../../analysis/web-clipper-templates/findings.md), and Q28–Q29 from implementation.
+Each question has a stable ID, continuing from `product.md`. When a question is answered, its ID is retired and never reused. Q23–Q25 came from the `tech.md` review, Q26–Q27 from the [Web Clipper template findings](../../analysis/web-clipper-templates/findings.md), and Q28–Q29 and Q33–Q35 from implementation, and Q30–Q32 from a feature request during implementation.
 
 There are no open questions right now.
 
@@ -490,6 +531,12 @@ There are no open questions right now.
 | Q26 | Clipping-aware built-in templates | Literature note carries `source`, `author` and `published` over; every built-in adds `created`; empty properties are left out | 15.0.6–15.0.8 |
 | Q27 | Example templates adapted from Web Clipper | Recipe card, Book reference and Movie reference ship as importable examples, not built-ins | 20.0.7, 20.0.8 |
 | Q28 | Frontmatter `tags` written as one string | Split it on commas and spaces, rather than following Obsidian, which reads such a string as no tags | 11.0.4 |
+| Q30 | Picking templates automatically | Template triggers, as in Web Clipper: tag, folder, property, title regex and content regex | REQ-22 |
+| Q31 | When several templates' triggers match | The first in template order; templates can be reordered | 22.0.2, 22.0.8 |
+| Q32 | Trigger priority | Template command, then trigger, then last-used template, then the first template; the popup shows the matched trigger | 22.0.3, 22.0.4 |
+| Q33 | Reasoning models | Strip `<think>` reasoning from responses; explain an output limit spent on reasoning | 8.0.8, 8.0.9 |
+| Q34 | Output limit when none is set | Send none, so the provider's default applies, except Anthropic, which requires one: 8,192 | 3.0.11 |
+| Q35 | LM Studio context length | Read the loaded length for the warning and show it; optionally load the model with the engine's context window before a run | 4.0.9, 4.0.10 |
 | Q29 | Real-model verification (TASK-23) | The user enters API keys and the LM Studio token in a sandboxed test vault, so they never pass through the conversation, and the agent runs the templates | TASK-23 |
 
-The next new question is Q30.
+The next new question is Q36.

@@ -237,6 +237,28 @@ So `ai/machine-learning`, `ai-machine-learning`, `AiMachineLearning` and `ai_mac
 ### 9. Unknown-variable checks are ours, not `knap`'s
 `knap`'s built-in variable checks know Web Clipper's page variables (`url`, `selector:` and so on), not ours. `template/knap.ts` uses `knap`'s `validate` for syntax and filter errors (7.0.3), and walks the AST for unknown variable names against our own catalog (6.0.4, 21.0.7). Both feed CodeMirror lint diagnostics in the template editor.
 
+### 10. Template triggers are parsed once and matched against the snapshot
+`core/triggers.ts` parses each trigger line into a typed rule (`tag`, `folder`, `property`, `title`, `content`) or a problem with its line number, and `matchTemplate(templates, note)` returns the first template, in list order, with a matching rule, plus the trigger that matched (REQ-22).
+
+- Matching runs on a `NoteSnapshot`, so it uses the same tags (frontmatter and inline, with 11.0.4's string splitting), properties and text as a run does, and stays pure and unit-testable.
+- Tag rules compare by `tagFold`, and also match nested tags under them (`#project` matches `project/beta`, not `projects`). Folder rules compare whole path segments, so `folder:Meet` doesn't match `Meetings/`.
+- A line that can't be parsed, or a regular expression that won't compile, becomes a diagnostic in the template editor and is skipped when matching (22.0.6), so one bad line never stops the popup opening.
+- The popup reads the snapshot when it opens. `cachedRead` is a local file read, not a network request, so 1.0.5 still holds. The setup step renders at once and applies the match when the read finishes, unless the user has already picked a template.
+
+### 11. Reasoning is removed from responses, and an output limit spent on it is reported
+Some local reasoning models write their working into the answer text as `<think>…</think>`. `core/reasoning.ts` `stripReasoning(text)` removes every complete `<think>…</think>` block, everything up to a `</think>` that has no opening tag, and a `<think>` block left unclosed at the end (8.0.8). The run controller applies it to the main output before composing the note, and to the inline prompt and tagging responses before parsing them. The live view during the run still shows the raw stream, so the user can see the model working.
+
+When a response is cut off at the output limit (`ChatResult.truncated`) and has no text left after stripping, the main request fails with an `output-limit` error explaining that the model used its whole output limit before answering, and suggesting a higher maximum output tokens (8.0.9). The inline prompt and tagging notices name the same cause.
+
+With no maximum output tokens set, OpenAI, Gemini and OpenAI-compatible requests carry no output limit, so the provider's or model's default applies. Anthropic, whose API requires `max_tokens`, gets 8,192 (3.0.11).
+
+### 12. LM Studio's loaded context length is read before a run, and set when asked
+LM Studio fixes a model's context length when it loads the model, and its OpenAI-compatible endpoint can't change it per request. For engines made by detection (they carry `lmStudio`), `engines/lmstudio.ts` reads the loaded instance from the native `GET /api/v1/models` before each run, with the engine's token:
+
+- The long-note check uses the smaller of the loaded context length and the engine's setting (4.0.9), so the warning reflects what LM Studio will actually accept.
+- With `lmStudio.loadContext` on (4.0.10), a model loaded at another length, or not loaded, is unloaded (`POST /api/v1/models/unload`) and loaded with `POST /api/v1/models/load` and `context_length`. The run controller reports a `loading` status, which the popup shows, and loading can take seconds to minutes. A failed load fails the run with LM Studio's message.
+- Reading is a quick local request on desktop. Engines not made by detection, and older LM Studio versions without the v1 API, are left as they are: the check falls back to the engine's setting.
+
 ## Data model
 
 ```mermaid
@@ -275,7 +297,7 @@ interface EngineConfig {
   maxOutputTokens?: number;
   contextWindow?: number;             // 3.0.9
   contextWindowSource?: 'reported' | 'table' | 'user';
-  lmStudio?: { port: number };        // set by detection; used to upsert (4.4)
+  lmStudio?: { port: number; loadContext?: boolean };   // set by detection; used to upsert (4.4); decision 12
 }
 
 interface Template {
@@ -294,6 +316,7 @@ interface Template {
   references?: { enabled?: boolean; heading?: string };
   openAfterCreate?: boolean;
   origin?: { builtInId: string; version: number; hash: string };   // decision 2
+  triggers?: string[];                // REQ-22, one rule per line; decision 10
 }
 
 interface PropertyDef {
@@ -425,10 +448,10 @@ function planPath(app: App, folder: string, name: string): Promise<string>;  // 
 
 | Engine | Endpoint | Auth header | Streaming | Max output | Models / context |
 |---|---|---|---|---|---|
-| Anthropic | `POST {base}/v1/messages` | `x-api-key`, `anthropic-version`, `anthropic-dangerous-direct-browser-access: true` | SSE `content_block_delta` | `max_tokens` | `GET /v1/models`; context window from `model-metadata.ts` |
-| OpenAI | `POST {base}/v1/chat/completions` | `Authorization: Bearer` | SSE `choices[].delta` | `max_completion_tokens` | `GET /v1/models`; context window from table |
-| OpenAI-compatible | `POST {baseUrl}/chat/completions` | `Authorization: Bearer` **only if a key is set** (3.0.10) | as OpenAI | `max_tokens` (wider server support) | `GET {baseUrl}/models`; LM Studio adds native metadata |
-| Gemini | `POST …/models/{m}:generateContent`, `:streamGenerateContent?alt=sse` | `x-goog-api-key` | SSE | `generationConfig.maxOutputTokens` | `GET …/models` with `inputTokenLimit` |
+| Anthropic | `POST {base}/v1/messages` | `x-api-key`, `anthropic-version`, `anthropic-dangerous-direct-browser-access: true` | SSE `content_block_delta` | `max_tokens` (required; 8,192 when unset) | `GET /v1/models`; context window from `model-metadata.ts` |
+| OpenAI | `POST {base}/v1/chat/completions` | `Authorization: Bearer` | SSE `choices[].delta` | `max_completion_tokens`, only when set | `GET /v1/models`; context window from table |
+| OpenAI-compatible | `POST {baseUrl}/chat/completions` | `Authorization: Bearer` **only if a key is set** (3.0.10) | as OpenAI | `max_tokens` (wider server support), only when set | `GET {baseUrl}/models`; LM Studio adds native metadata |
+| Gemini | `POST …/models/{m}:generateContent`, `:streamGenerateContent?alt=sse` | `x-goog-api-key` | SSE | `generationConfig.maxOutputTokens`, only when set | `GET …/models` with `inputTokenLimit` |
 
 Truncation flags (`stop_reason: max_tokens`, `finish_reason: length`, `finishReason: MAX_TOKENS`) set `ChatResult.truncated`, which the preview shows as a warning.
 
@@ -453,13 +476,14 @@ Screen-level visual design is left to `design-direction` if wanted. These are th
   - main output streams into a read-only CodeMirror view
   - a spinner per pending request: output, inline prompts, tags
   - "Cancel"
+- **Template choice (REQ-22):** a "Derive with" command's template, else the first template whose trigger matches the source note, else the last-used template, else the first. A trigger-chosen template shows "Matched" and the matching trigger, such as `folder:Meetings`, under the dropdown. Changing the source note re-applies triggers until the user picks a template themselves.
 - **Preview step:** a full-height editable CodeMirror Markdown editor, plus a strip of warnings: truncated output, dropped tags (13.0.5), unanswered prompts (21.0.6), notices. Its buttons are "Save", "Discard" and "Back" to Setup, which keeps the selections.
 - **Modal size:** the modal grows to about 90% of the viewport for the Running and Preview steps (REQ-9). On mobile it's full-screen.
 - **Keyboard:** Tab order follows the visual order, `Mod+Enter` runs or saves, and `Esc` cancels or closes (19.0.2).
-- **TemplateEditorModal:** CodeMirror fields for main prompt, prompt context, filename, body wrapper and property values, with `knap/codemirror` highlighting and lint diagnostics (6.0.4, 7.0.3, 21.0.7). Inheritable settings are tri-state controls (decision 3).
+- **TemplateEditorModal:** CodeMirror fields for main prompt, prompt context, filename, body wrapper and property values, with `knap/codemirror` highlighting and lint diagnostics (6.0.4, 7.0.3, 21.0.7), and a Triggers field, one rule per line, whose unreadable lines and invalid expressions are flagged (22.0.6). Inheritable settings are tri-state controls (decision 3).
 - **SettingsTab sections**, declared through `getSettingDefinitions()` so Obsidian's settings search finds them:
   - Engines: list; add/edit with `SecretComponent`; List models; Test; "Detect LM Studio", hidden when `Platform.isMobile` (4.0.6, 17.2)
-  - Templates: list; new, duplicate, edit, delete; import, export; restore built-ins
+  - Templates: list, with drag-to-reorder that sets trigger order (22.0.8); new, duplicate, edit, delete; import, export; restore built-ins
   - Output defaults
   - Tagging defaults
   - About: the network-use disclosure (18.0.5)
@@ -492,6 +516,9 @@ Screen-level visual design is left to `design-direction` if wanted. These are th
 | AI returns more than `maxTags` | AI tags capped after dedup against source and template tags | 14.0.4, 14.2 |
 | Inline prompt in the main prompt or context | Lint error in the editor; literal text at run time | 21.0.7, 21.7 |
 | Malformed import file | Rejected whole with a reason; no change | 20.0.5, 20.4 |
+| Reasoning in a response (`<think>…</think>`) | `stripReasoning` removes it before the note is composed or answers are parsed | 8.0.8, 8.8 |
+| Output limit spent before any answer | `output-limit` error (main) or notice (inline, tagging) suggesting a higher maximum output tokens | 8.0.9, 8.9 |
+| Invalid trigger line or regular expression | Flagged in the template editor; skipped when matching | 22.0.6, 22.8 |
 | Plugin data from an older version | `settings-store.ts` migrates by `schemaVersion`, then upgrades unedited built-ins | 15.0.4 |
 | A template is renamed or deleted | `removeCommand` and re-`addCommand` for `derive-<id>` | 1.0.4, 1.4 |
 
@@ -521,12 +548,12 @@ Screen-level visual design is left to `design-direction` if wanted. These are th
 |---|---|
 | REQ-1 Entry points | `main.ts` ribbon + `derive-<id>` command registry (decision 2 ids; rename/delete re-registration); DeriveModal opens from local state only (1.5) |
 | REQ-2 Source selection | DeriveModal prefill from `workspace.getActiveFile()` if `.md`; FuzzySuggestModal; `NoteReader` is read-only, and no write path takes the source file (2.4) |
-| REQ-3 Engines | `EngineConfig`, SettingsTab Engines, `Engine` clients, `resolve.ts` (3.0.6–3.0.7), `NormalizedError`, OpenAI-compatible optional Bearer (3.8) |
-| REQ-4 LM Studio | `lmstudio.ts` `DetectResult` states; detect flow modals: model choice, token prompt (4.5–4.6); upsert by `lmStudio.port` (4.4); hidden on mobile |
+| REQ-3 Engines | `EngineConfig`, SettingsTab Engines, `Engine` clients, `resolve.ts` (3.0.6–3.0.7), `NormalizedError`, OpenAI-compatible optional Bearer (3.8), output limit only when set (decision 11, 3.9) |
+| REQ-4 LM Studio | Loaded context length read before a run and shown in settings, and optional load with the engine's context window (decision 12, 4.0.9–4.0.10); `lmstudio.ts` `DetectResult` states; detect flow modals: model choice, token prompt (4.5–4.6); upsert by `lmStudio.port` (4.4); hidden on mobile |
 | REQ-5 Templates | `Template` schema, tri-state inheritance, `resolve.ts`, `DEFAULTS`, `buildMainPrompt` auto-append (5.4), default filename (5.5) |
 | REQ-6 Variables | `variables.ts` table above; `diagnose` unknown names (6.4) |
 | REQ-7 Filters | `knap` `standardFilters` (7.1 parity by construction); `validate` diagnostics; run-time notice for invalid filters |
-| REQ-8 Running | `RunController`, concurrent requests, streaming transport, cancel (decision 5), `stripEnclosingFence`, `splitLeadingFrontmatter` |
+| REQ-8 Running | `RunController`, concurrent requests, streaming transport, cancel (decision 5), `stripEnclosingFence`, `splitLeadingFrontmatter`, `stripReasoning` and the `output-limit` error (decision 11) |
 | REQ-9 Preview | DeriveModal Preview step; text-as-saved (decision 1); `skipPreview` |
 | REQ-10 Output | `planPath`, `filename.ts`, folder creation, references insertion, `openAfterCreate` |
 | REQ-11 Merging | `NoteSnapshot.frontmatterTags` / `inlineTags`; pipeline steps 1, 6 |
@@ -539,6 +566,7 @@ Screen-level visual design is left to `design-direction` if wanted. These are th
 | REQ-18 Privacy | Local/Remote label from base-URL host (loopback or private ranges count as local); SecretStorage only; redaction; README + About disclosure |
 | REQ-19 Usability | Native components; keyboard map; `UiState` last template and location |
 | REQ-20 Import/export | Export schema without credentials; validated import; `core/examples/*.json` (Recipe card, Book reference, Movie reference) with "leave empty rather than guess" prompts and `omitEmptyProperties` |
+| REQ-22 Template triggers | `core/triggers.ts` parse and `matchTemplate` (decision 10); `Template.triggers`, exported and imported with the template; DeriveModal template choice and "Matched" hint; Triggers field with diagnostics; reorderable template list |
 | REQ-21 Inline prompts | `collectPrompts` (decision 8), `buildInlineRequest` / `parseInlineResponse`, `context` field default `{{title}}\n\n{{content}}`, async resolver rendering, `diagnose` for misplaced prompts |
 
 **Coverage check:** every acceptance criterion maps to a row above. Two need care at implementation time rather than further design:

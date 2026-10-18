@@ -25,9 +25,10 @@ UI modules are covered by end-to-end tests (TASK-21) rather than unit thresholds
 | 3. Engines | TASK-9 to TASK-11 | TASK-1 only, so it can run alongside Milestone 2 |
 | 4. Headless run | TASK-12 to TASK-15, then TASK-25 | Milestones 2 and 3 |
 | 5. User interface | TASK-16 to TASK-19, then TASK-24 | Milestone 4 |
-| 6. Mobile, end-to-end tests and release | TASK-20 to TASK-23 | Milestone 5 |
+| 7. Template triggers and reasoning models | TASK-26 to TASK-29 | Milestone 5 |
+| 6. Mobile, end-to-end tests and release | TASK-20 to TASK-23 | Milestone 5; TASK-23 also needs Milestone 7 |
 
-Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were added in a revision after end-to-end testing; TASK-21 depends on both.
+Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were added in a revision after end-to-end testing; TASK-21 depends on both. Milestone 7 was added during real-model verification (TASK-23), which resumes once it's done; it sits before Milestone 6 so that verification comes last.
 
 ## Task List
 
@@ -432,6 +433,48 @@ Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were add
     3. Use `setDestructive()` for delete confirmations instead of the `mod-warning` class.
     4. Verify: lint has no settings-API warnings, settings search finds "Detect LM Studio" and "Tag format", and the settings scenarios still pass in Obsidian 1.13.4 and the latest version.
 
+### Milestone 7: Template triggers and reasoning models
+
+**Done when:** templates are preselected by their triggers, reasoning never reaches a note, and an output limit spent on reasoning is explained, each covered by unit and end-to-end tests.
+
+- [ ] **TASK-26: Output limits and reasoning responses**
+  - **Associated Acceptance Criteria**: `3.9`, `8.8`, `8.9`
+  - **Depends on**: TASK-10, TASK-15
+  - **Concrete Steps**:
+    1. Send an output limit only when the engine sets one, except Anthropic, which sends 8,192 when unset (3.0.11). Update the engine form's description of the field.
+    2. `core/reasoning.ts` `stripReasoning(text)`: remove complete `<think>…</think>` blocks, everything before an unopened `</think>`, and an unclosed `<think>` block at the end.
+    3. In the run controller, strip the main output before composing, and the inline and tagging responses before parsing them. The live view keeps showing the raw stream.
+    4. When a response is truncated and empty after stripping, fail the main request with an `output-limit` error that suggests raising maximum output tokens, and say the same in the inline and tagging notices (8.0.9).
+    5. Tests: the request bodies with and without the setting for each provider (3.9); stripping in every form, including streamed and fenced output (8.8); the output-limit error and notices from a fixture engine (8.9).
+
+- [ ] **TASK-27: Template triggers (core)**
+  - **Associated Acceptance Criteria**: `22.2`, `22.3`, `22.4`, `22.10`
+  - **Depends on**: TASK-12, TASK-19
+  - **Concrete Steps**:
+    1. Add `triggers?: string[]` to `Template`, with load validation, and include it in export and import (22.10).
+    2. `core/triggers.ts`: parse `#tag`, `folder:`, `property:` (with or without `=value`), `title:/…/flags` and `content:/…/flags` into rules, reporting unreadable lines and invalid expressions with their line numbers.
+    3. `matchTemplate(templates, note)` returns the first matching template, in list order, and the trigger that matched.
+    4. Tests, aiming for the 95% line and 90% branch target: each rule type, nested tags matching and `projects` not matching `#project` (22.2), properties with list values and case (22.3), the title and content expressions (22.4), folder segments, list order, and bad lines skipped.
+
+- [ ] **TASK-28: Template triggers (UI)**
+  - **Associated Acceptance Criteria**: `22.1`, `22.5`, `22.6`, `22.7`, `22.8`, `22.9`
+  - **Depends on**: TASK-27, TASK-24
+  - **Concrete Steps**:
+    1. Template editor: a Triggers field, one rule per line, with its problems listed under it, as for the other fields (22.8).
+    2. Popup: choose the template by command, then trigger, then last used, then the first (22.0.3); show "Matched" and the trigger under the dropdown (22.7); re-apply triggers when the source note changes, until the user picks a template (22.9).
+    3. Settings: drag-to-reorder for the template list, which sets the matching order (22.5).
+    4. Built-in templates ship with no triggers, so nothing changes until a user adds some.
+    5. End-to-end scenarios: a folder trigger preselects (22.1); reordering changes the match (22.5); a "Derive with" command wins (22.6); the hint shows (22.7); an invalid expression doesn't break the popup (22.8); changing the source re-applies triggers (22.9).
+
+- [ ] **TASK-29: LM Studio context length**
+  - **Associated Acceptance Criteria**: `4.7`, `4.8`, `4.9`
+  - **Depends on**: TASK-11, TASK-15, TASK-24
+  - **Concrete Steps**:
+    1. `lmstudio.ts`: read the model's loaded instance and context length from `/api/v1/models`, and load or unload it through `/api/v1/models/load` and `/api/v1/models/unload`, with the engine's token.
+    2. Run controller: for an engine with `lmStudio`, read the loaded context length before the size check and use the smaller of it and the setting (4.7). With `loadContext`, reload when the length differs, reporting a `loading` status that the popup shows (4.8).
+    3. Engine form: for LM Studio engines, the context window choice "Let LM Studio decide" or "Load the model with this context window", and the loaded context length shown under it (4.9).
+    4. Tests with fixture responses for each case, including LM Studio being unreachable, the v1 API being missing, and a failed load. Check with the real LM Studio in TASK-23.
+
 ### Milestone 6: Mobile, end-to-end tests and release
 
 **Done when:** Mobile verified, end-to-end tests in CI, README and release workflow done, real-model verification recorded.
@@ -486,6 +529,7 @@ Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were add
 
 - [ ] **TASK-23: Pre-release verification with real models**
   - **Associated Acceptance Criteria**: `3.1`, `4.1`, `4.5`, `8.5`, `15.2`, `19.1`, `20.5`, `20.6`
+  - **Depends on**: Milestone 7, so the reasoning-model fixes are verified too
   - **Concrete Steps**:
     1. Run each built-in and example template against one model per provider, plus LM Studio with authentication off and on. Record the results in `spec/obsidian-inference-machine/verification.md`.
     2. Confirm:
@@ -496,3 +540,4 @@ Dependencies within a milestone are noted per task. TASK-24 and TASK-25 were add
        - LM Studio detection works with and without a token (4.1, 4.5)
     3. Check the popup and settings under the default light and dark themes and one popular community theme (19.1).
     4. File any model-behavior gaps as prompt fixes to the built-ins before release.
+    5. Rerun the LM Studio set with a reasoning model and no output limit, to confirm 8.0.8, 8.0.9 and 3.0.11 with a real model.
