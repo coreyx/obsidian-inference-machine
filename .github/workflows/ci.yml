@@ -19,9 +19,8 @@ jobs:
       - run: npm test
 
   e2e:
-    # End-to-end tests in real Obsidian (TASK-21). Non-blocking until they've proven stable in CI.
+    # End-to-end tests in real Obsidian (TASK-21).
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

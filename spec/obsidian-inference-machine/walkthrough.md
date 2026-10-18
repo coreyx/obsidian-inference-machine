@@ -57,7 +57,7 @@ The code is in four layers. `src/core` is pure TypeScript with no Obsidian impor
 ### Automated Tests
 Ran the full suite after the last code change:
 - **Unit tests** (`npm test`): **Passed**. 340 tests in 22 files. Coverage is 99.0% of statements, 95.3% of branches and 99.3% of lines overall, above the per-area targets in [`tasks.md`](./tasks.md).
-- **End-to-end tests** (`npm run test:e2e`): **Passed**. 9 spec files: 17 desktop and 5 trigger scenarios on Obsidian 1.14.4 and again on 1.13.4, plus 2 under mobile emulation.
+- **End-to-end tests** (`npm run test:e2e`): **Passed**. 9 spec files: 17 desktop and 5 trigger scenarios on Obsidian 1.14.4 and again on 1.13.4, plus 2 under mobile emulation. The suite also passes in GitHub Actions, where it blocks a failing push. Its first run there failed on the mobile test, because the test clicked Run while the popup was still sliding into view. The tests now wait for the popup to settle, and the job has passed since.
 - **Lint** (`npm run lint`): **Passed** with one intended warning, the `fetch` in `engines/transport.ts`. Obsidian's `requestUrl` can't stream, so `fetch` is used for streaming only.
 - **Build** (`npm run build`): **Passed**.
 
@@ -85,7 +85,6 @@ Automated tests use a mock server, so check these with your own engines:
 
 ## Follow-ups
 
-- **CI end-to-end job:** it's in `.github/workflows/ci.yml` but non-blocking, and it hasn't run on GitHub yet. Once it passes there, consider making it blocking.
-- **Release:** no version has been cut. Use `prepare-release` when ready, and push the branch and open a pull request first.
+- **Release:** no version has been cut. Use `prepare-release` when ready.
 - **Shared run:** the popup, the commands and scripts share one run, so starting a run or closing the popup cancels one in flight. That's by design, but anyone scripting the plugin should know it.
 - **Demo vault theme:** verification installed the Minimal theme in `demo/vault/.obsidian/themes`. That folder is gitignored, and the theme isn't active.
