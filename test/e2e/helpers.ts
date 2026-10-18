@@ -90,10 +90,18 @@ export async function openPopup(): Promise<void> {
 	await popup().waitForExist();
 }
 
-/** Clicks Run and waits for the preview. */
+/** Clicks Run and waits for the preview. A timeout reports what the popup showed instead, such as an error. */
 export async function runToPreview(): Promise<void> {
-	await popupButton('Run').click();
-	await popup().$('.im-path').waitForExist({ timeout: 30000 });
+	// On mobile the popup slides up from below the screen, so Run can't be clicked until it has settled.
+	const run = popupButton('Run');
+	await run.waitForClickable();
+	await run.click();
+	try {
+		await popup().$('.im-path').waitForExist({ timeout: 30000 });
+	} catch (error) {
+		const shown = (await popup().isExisting()) ? await popup().getText() : '(the popup is closed)';
+		throw new Error(`No preview after 30 seconds (${error instanceof Error ? error.message : String(error)}). The popup showed:\n${shown}`);
+	}
 }
 
 /** A vault file's text, or null when it doesn't exist. */
