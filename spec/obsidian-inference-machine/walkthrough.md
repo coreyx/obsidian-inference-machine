@@ -70,7 +70,7 @@ TASK-23 ran every built-in and example template against real models. The full re
 - **Themes** (19.1): **Passed**. The popup and settings are readable under the default dark and light themes and the Minimal theme.
 
 ### Regression Testing
-The unit and end-to-end suites ran after every task, and both pass on the final commit. You reported six problems in the engine form while setting up engines for verification: buttons made the settings panel jump, Test needed a listed model, changing the provider kept old values, the default name couldn't be kept, required fields weren't marked, and duplicate engine names were allowed. All six were fixed in `6dcd15d` and covered by tests.
+The unit and end-to-end suites ran after every task, and both pass on the final commit. You reported six problems in the engine form while setting up engines for verification: buttons made the settings panel jump, Test needed a listed model, changing the provider kept old values, the default name couldn't be kept, required fields weren't marked, and duplicate engine names were allowed. All six were fixed in `d96bf03` and covered by tests.
 
 ## Manual Verification
 
