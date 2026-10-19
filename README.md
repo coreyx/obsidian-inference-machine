@@ -8,9 +8,36 @@ Derive a new note from an existing one with an AI model. Pick a note, pick a tem
 - **Nothing is saved until you say so.** The preview shows the exact note that will be created, and you can edit it first.
 - Works on desktop and mobile. Requires Obsidian 1.13.4 or later.
 
+## Installation
+
+Inference Machine isn't in Obsidian's Community Plugins directory yet. Install it with BRAT, or by hand.
+
+### With BRAT (recommended)
+
+[BRAT](https://github.com/TfTHacker/obsidian42-brat) installs plugins straight from GitHub releases and keeps them updated. It works on desktop and mobile.
+
+1. Install and enable the **BRAT** community plugin from **Settings → Community plugins → Browse**. Restricted mode must be off.
+2. Open **Settings**, and select **BRAT** under Community plugins.
+3. Under **Beta plugin list**, click **Add beta plugin**.
+4. Enter the repository:
+   ```text
+   https://github.com/coreyx/obsidian-inference-machine
+   ```
+   or just `coreyx/obsidian-inference-machine`.
+5. Click **Add plugin**. BRAT downloads the latest release.
+6. Open **Settings → Community plugins**, and turn on **Inference Machine**.
+
+BRAT can check for new releases when Obsidian starts, or on demand from its settings and commands.
+
+### By hand
+
+1. Download `main.js`, `manifest.json` and `styles.css` from the [latest release](https://github.com/coreyx/obsidian-inference-machine/releases/latest).
+2. Put them in a new folder, `<your vault>/.obsidian/plugins/inference-machine/`. The `.obsidian` folder is hidden on some systems.
+3. Reload Obsidian, then turn on **Inference Machine** under **Settings → Community plugins**.
+
 ## Getting started
 
-1. Install the plugin and enable it.
+1. Install the plugin (see [Installation](#installation)) and enable it.
 2. Open **Settings → Inference Machine** and add an engine (see [Engines](#engines)).
 3. Open a note, then click the sparkles icon in the ribbon or run **Inference Machine: Open** from the command palette.
 4. Choose a template, click **Run**, check the preview, and click **Save**.
