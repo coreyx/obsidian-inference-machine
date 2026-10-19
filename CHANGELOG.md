@@ -4,6 +4,10 @@ All notable changes to Inference Machine are recorded here. The format follows [
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-19
+
+The first release, installable with BRAT.
+
 ### Added
 
 - A popup, opened from the ribbon, the **Open** command or a per-template **Derive with** command, that runs a template on the current note and creates the result as a new note, with a preview you can edit first.
@@ -15,3 +19,6 @@ All notable changes to Inference Machine are recorded here. The format follows [
 - Template triggers: rules by tag, folder, property, filename or contents that preselect a template in the popup.
 - Support for reasoning models: `<think>` working is removed from responses, the output limit is only sent when set (Anthropic gets 8,192), and an answer cut short by reasoning is reported as such.
 - For LM Studio engines, the context length the model is loaded with is shown in the engine's settings and used for the long-note warning, and an engine can load the model with its own context window before each run.
+
+[Unreleased]: https://github.com/coreyx/obsidian-inference-machine/compare/0.1.0...HEAD
+[0.1.0]: https://github.com/coreyx/obsidian-inference-machine/releases/tag/0.1.0
