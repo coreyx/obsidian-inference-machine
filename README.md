@@ -18,14 +18,14 @@ Inference Machine isn't in Obsidian's Community Plugins directory yet. Install i
 
 1. Install and enable the **BRAT** community plugin from **Settings → Community plugins → Browse**. Restricted mode must be off.
 2. Open **Settings**, and select **BRAT** under Community plugins.
-3. Under **Beta plugin list**, click **Add beta plugin**.
-4. Enter the repository:
+3. Next to **Beta plugin list**, click the **+** button (**Add beta plugin**).
+4. Under **Repository**, enter:
    ```text
    https://github.com/coreyx/obsidian-inference-machine
    ```
    or just `coreyx/obsidian-inference-machine`.
-5. Click **Add plugin**. BRAT downloads the latest release.
-6. Open **Settings → Community plugins**, and turn on **Inference Machine**.
+5. Under **Select a version**, choose **Latest version**. Leave **Enable after installing the plugin** ticked, and click **Add plugin**. BRAT downloads the release and turns the plugin on.
+6. If you unticked that box, turn on **Inference Machine** under **Settings → Community plugins**.
 
 BRAT can check for new releases when Obsidian starts, or on demand from its settings and commands.
 
