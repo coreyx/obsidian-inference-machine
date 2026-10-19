@@ -34,7 +34,7 @@ The code is in four layers. `src/core` is pure TypeScript with no Obsidian impor
 
 ### 5. User interface (Milestone 5)
 - **`ui/derive-modal.ts`, `ui/preview-editor.ts`** (TASK-16): the popup with source, template, location and engine choices, a live view while it streams, an editable CodeMirror preview, and long-note and filename-collision prompts.
-- **`ui/commands.ts`** (TASK-17): the ribbon icon, **Open**, and one **Derive with <template>** command per template.
+- **`ui/commands.ts`** (TASK-17): the ribbon icon, **Open**, and one **Derive with** command per template, such as **Derive with Comprehensive summary**.
 - **`ui/settings-tab.ts`, `ui/engine-modal.ts`, `ui/template-editor.ts`** (TASK-18): settings, engine and template lists with reordering, and editors that say what's missing before Test or Save.
 - **`core/template-transfer.ts`, `ui/template-transfer.ts`, `examples/`** (TASK-19): import and export as JSON, with no keys ever exported, and the Recipe card, Book reference and Movie reference examples.
 - **Declarative settings** (TASK-24): `minAppVersion` raised to 1.13.4 so the settings use Obsidian's declarative definitions, which its settings search finds.
@@ -78,7 +78,7 @@ Automated tests use a mock server, so check these with your own engines:
 
 1. **Install:** run `npm run demo:install`, or copy `main.js`, `manifest.json` and `styles.css` into `<vault>/.obsidian/plugins/inference-machine/`, then enable **Inference Machine** under **Settings → Community plugins**.
 2. **Add an engine:** in **Settings → Inference Machine**, click **+** next to **Engines**, choose a provider, link a stored key, or add one, with **Link…** under **API key**, type or list a model, and click **Test**. Expect "Connected…". Save stays disabled until the required fields are filled.
-3. **Derive a note:** open a note, click the sparkles ribbon icon, choose **Key points / TL;DR** and click **Run**. Expect the output to stream in, then a preview with "Saves to <folder>/<note> - Key points.md". Edit a line, click **Save**, and check that the new note has your edit, the source's tags and a `# References` link back. Check that the source note is unchanged.
+3. **Derive a note:** open a note, click the sparkles ribbon icon, choose **Key points / TL;DR** and click **Run**. Expect the output to stream in, then a preview that says it saves to `<folder>/<note> - Key points.md`. Edit a line, click **Save**, and check that the new note has your edit, the source's tags and a `# References` link back. Check that the source note is unchanged.
 4. **Triggers:** edit **Action items**, add `folder:Meetings` under **Triggers**, then open the popup on a note in `Meetings`. Expect **Action items** preselected and "Matched folder:Meetings".
 5. **LM Studio:** with LM Studio's server running, click **Detect** in the LM Studio row, and enter a token if asked. Then edit the engine and check that it shows "LM Studio has this model loaded at N tokens". Set **Context length in LM Studio** to "Load the model with this context window", with a context window different from the loaded one, and run a template. Expect "Loading the model in LM Studio…" as the popup's first row. The model must fit in GPU memory at that length, or runs get much slower.
 6. **Mobile:** sync the plugin to a phone, add a key for an engine (keys don't sync), and run a template. Instead of a Detect button, the LM Studio row explains how to add LM Studio by your computer's network address.
