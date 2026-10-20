@@ -86,6 +86,7 @@ Automated tests use a mock server, so check these in your own vault, with your o
 
 ## Follow-ups
 
-- **Release:** no version has been cut. Use `prepare-release` when ready.
+- **Release:** 0.1.0 is published on GitHub for BRAT. The README's BRAT steps were corrected for BRAT 2.2.0 after the tag, so the README inside the 0.1.0 tag has the older wording until the next release.
+- **Real phone:** mobile was tested under emulation only. Step 7 above is the check on a real device.
 - **Shared run:** the popup, the commands and scripts share one run, so starting a run or closing the popup cancels one in flight. That's by design, but anyone scripting the plugin should know it.
 - **Demo vault theme:** verification installed the Minimal theme in `demo/vault/.obsidian/themes`. That folder is gitignored, and the theme isn't active.
