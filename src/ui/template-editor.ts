@@ -268,6 +268,18 @@ export class TemplateEditorModal extends Modal {
 						else references.heading = v.trim();
 					}),
 			);
+		triState(
+			new Setting(el).setName('Carry leading images').setDesc('Put the images at the front of the source note at the top of the new note.'),
+			draft.carryImages,
+			inherited.carryImages,
+			(v) => setOptional(draft, 'carryImages', v),
+		);
+		triState(
+			new Setting(el).setName('Copy the source\'s frontmatter').setDesc('Copy the source note\'s properties, except the ones the global settings exclude.'),
+			draft.carryProperties,
+			inherited.carryProperties,
+			(v) => setOptional(draft, 'carryProperties', v),
+		);
 	}
 
 	private renderTagging(el: HTMLElement, inherited: RunConfig): void {

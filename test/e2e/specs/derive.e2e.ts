@@ -209,6 +209,41 @@ describe('Inference Machine on desktop', function () {
 		await expect(popup().$('.cm-content')).toHaveText(expect.stringMatching(/tags:\n\s*- alpha\n\s*- beta/u));
 	});
 
+	it('lets a template override carrying images and frontmatter', async function () {
+		const result = await browser.executeObsidian(async ({ app }) => {
+			type Setting = { open(): void; close(): void; openTabById(id: string): void; activeTab?: { containerEl: HTMLElement }; win?: Window };
+			type Plugin = { store: { data: { templates: { name: string; carryImages?: boolean; carryProperties?: boolean }[] } } };
+			const setting = (app as unknown as { setting: Setting }).setting;
+			const plugin = (app as unknown as { plugins: { plugins: Record<string, Plugin> } }).plugins.plugins['inference-machine']!;
+			const wait = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
+			setting.open();
+			setting.openTabById('inference-machine');
+			await wait(600);
+			const tab = setting.activeTab!.containerEl;
+			const row = [...tab.querySelectorAll('.setting-item')].find((e) => e.querySelector('.setting-item-name')?.textContent === 'Key points / TL;DR');
+			[...row!.querySelectorAll('button')].find((b) => b.textContent === 'Edit')!.click();
+			await wait(600);
+			const editor = tab.ownerDocument.querySelector('.im-template-editor')!;
+			const dropdown = (name: string) =>
+				[...editor.querySelectorAll('.setting-item')].find((e) => e.querySelector('.setting-item-name')?.textContent === name)?.querySelector('select');
+			const images = dropdown('Carry leading images')!;
+			const properties = dropdown('Copy the source\'s frontmatter')!;
+			const shown = { images: images.value, imagesLabel: images.options[0]?.textContent, properties: properties.value };
+			images.value = 'off';
+			images.dispatchEvent(new Event('change'));
+			[...editor.querySelectorAll('button')].find((b) => b.textContent === 'Save')!.click();
+			await wait(400);
+			const saved = plugin.store.data.templates.find((t) => t.name === 'Key points / TL;DR')!;
+			const after = { carryImages: saved.carryImages, setsCarryProperties: 'carryProperties' in saved };
+			// Put the built-in back as it was, for the scenarios that follow.
+			delete saved.carryImages;
+			setting.close();
+			return { shown, after };
+		});
+		expect(result.shown).toEqual({ images: 'inherit', imagesLabel: 'Inherit (on)', properties: 'inherit' });
+		expect(result.after).toEqual({ carryImages: false, setsCarryProperties: false });
+	});
+
 	it('declares its settings, so settings search finds them', async function () {
 		const result = await browser.executeObsidian(async ({ app }) => {
 			type Setting = { open(): void; close(): void; openTabById(id: string): void; activeTab?: { containerEl: HTMLElement } };

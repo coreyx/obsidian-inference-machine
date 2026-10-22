@@ -129,7 +129,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
   - Wire up the keys in the getter and setter switch, the way `references.enabled` is.
 
 #### [MODIFY] `src/ui/template-editor.ts`
-- [ ] **TASK-13:** Add two tri-state settings next to **Link back to the source**, using the existing `triState` helper with the inherited global value: **Carry leading images** (`carryImages`) and **Copy the source's frontmatter** (`carryProperties`).
+- [x] **TASK-13:** Add two tri-state settings next to **Link back to the source**, using the existing `triState` helper with the inherited global value: **Carry leading images** (`carryImages`) and **Copy the source's frontmatter** (`carryProperties`).
 
 ### Built-in and example templates
 
