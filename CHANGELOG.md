@@ -4,6 +4,11 @@ All notable changes to Inference Machine are recorded here. The format follows [
 
 ## [Unreleased]
 
+### Added
+
+- **Carry leading images:** the images at the front of the source note, such as a cover or banner, are put at the top of the new note, relinked so they still show from its folder. This is on by default, and a template can turn it off. Action items and Flashcards don't carry images.
+- **Copy the source's frontmatter:** the source note's properties are copied into the new note, under the template's own properties and any the model writes. Tags are merged as before, and **Properties not to copy** (`aliases, cssclasses` to start) are left out. This is on by default, and a template can turn it off. Flashcards and the example templates don't copy properties.
+
 ## [0.1.1] - 2026-10-21
 
 ### Changed

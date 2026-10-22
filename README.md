@@ -98,7 +98,24 @@ Every setting below is optional. A template that leaves one unset uses the defau
 - **Location:** a folder, or next to the source note. Missing folders are created. A taken name gets a number (`Alpha - Summary 1`); nothing is ever overwritten.
 - **Engine**, **skip preview**, **open the new note**, and a **link back to the source** under a heading (`# References` by default). The link follows your vault's link settings.
 - **Tag settings**, including preferred tags for AI tagging.
+- **Carry leading images** and **copy the source's frontmatter** (see below).
 - **Triggers:** rules that preselect the template in the popup (see below).
+
+### Carrying images and frontmatter from the source
+
+Two settings, both on by default, carry things from the source note into the new one. You'll find them under **Carry over from the source** in the plugin's settings, and each template can turn either one on or off for itself.
+
+- **Carry leading images:** the images at the front of the source note go at the top of the new note. An image is "at the front" when only headings, blank lines and other images come before it, such as a cover under the note's title. Both `![[cover.png|300]]` and `![alt](path or URL)` embeds count. An image in your vault gets a new link from your vault's link settings, so it still shows when the new note is in another folder, and its size or caption is kept. A URL is kept as it is. The image file itself isn't copied or moved. If the model's output already shows the same image, it isn't added twice.
+- **Copy the source's frontmatter:** the source's properties are copied into the new note. Tags are left out of the copy, because they're merged separately (see [Tags](#tags)). So are the names in **Properties not to copy**, which starts as `aliases, cssclasses`: copied aliases would offer the new note under the source's names, and copied CSS classes would style it like the source. A template's own properties come first, then any frontmatter the model writes, then the source's, so a template's `created` date is never overwritten. Empty copied properties are left out when the template leaves out empty properties.
+
+The built-in templates use them as follows:
+
+- Comprehensive summary, Key points / TL;DR and Literature note carry both.
+- Action items copies the frontmatter but not images.
+- Flashcards carries neither.
+- The Recipe card, Book reference and Movie reference examples carry images, such as a dish photo, cover or poster, but not properties, because they define their own.
+
+Copied properties make a derived note match the same property triggers as its source. For example, a Key points note made from a `type: book` note also has `type: book`. To avoid that, add the property to **Properties not to copy**.
 
 ### Triggers
 

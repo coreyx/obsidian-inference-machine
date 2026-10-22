@@ -154,7 +154,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
 ### Docs
 
 #### [MODIFY] `README.md`, `CHANGELOG.md`
-- [ ] **TASK-18:** Document both settings in the README's settings and template sections, including the trigger side effect and the exclude list. Add an Unreleased "Added" entry to the CHANGELOG.
+- [x] **TASK-18:** Document both settings in the README's settings and template sections, including the trigger side effect and the exclude list. Add an Unreleased "Added" entry to the CHANGELOG.
 
 ## Verification Plan
 
