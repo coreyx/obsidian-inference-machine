@@ -15,6 +15,9 @@ export interface RunDefaults {
 	skipPreview: boolean;
 	references: { enabled: boolean; heading: string };
 	openAfterCreate: boolean;
+	carryImages: boolean;
+	carryProperties: boolean;
+	excludedProperties: readonly string[];
 	omitEmptyProperties: boolean;
 	collision: 'number' | 'ask';
 	lmStudioPort: number;
@@ -34,6 +37,11 @@ export const DEFAULTS: Readonly<RunDefaults> = deepFreeze({
 	skipPreview: false,
 	references: { enabled: true, heading: '# References' },
 	openAfterCreate: true,
+	carryImages: true,
+	carryProperties: true,
+	// Copied aliases would offer the new note under the source's names in link
+	// suggestions, and copied cssclasses would style it like the source (Q47).
+	excludedProperties: ['aliases', 'cssclasses'],
 	omitEmptyProperties: false,
 	collision: 'number',
 	lmStudioPort: 1234,
@@ -70,6 +78,9 @@ export function defaultGlobalSettings(): GlobalSettings {
 		tagging: { ...DEFAULTS.tagging },
 		references: { ...DEFAULTS.references },
 		openAfterCreate: DEFAULTS.openAfterCreate,
+		carryImages: DEFAULTS.carryImages,
+		carryProperties: DEFAULTS.carryProperties,
+		excludedProperties: [...DEFAULTS.excludedProperties],
 		collision: DEFAULTS.collision,
 		lmStudioPort: DEFAULTS.lmStudioPort,
 	};

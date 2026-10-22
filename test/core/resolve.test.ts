@@ -123,6 +123,19 @@ describe('resolveRunConfig: layers', () => {
 		expect(config.sources['references.heading']).toBe('global');
 	});
 
+	it('carries the source over by default, and lets a template turn either part off', () => {
+		const { config } = resolveRunConfig(input());
+		expect(config).toMatchObject({ carryImages: true, carryProperties: true, excludedProperties: ['aliases', 'cssclasses'] });
+		expect(config.sources).toMatchObject({ carryImages: 'global', carryProperties: 'global', excludedProperties: 'global' });
+
+		const globalSettings = { ...defaultGlobalSettings(), carryImages: false, excludedProperties: ['type'] };
+		const template: Template = { id: 't', name: 'T', prompt: 'p', carryImages: true, carryProperties: false };
+		const resolved = resolveRunConfig(input({ template, globalSettings })).config;
+		expect(resolved).toMatchObject({ carryImages: true, carryProperties: false, excludedProperties: ['type'] });
+		expect(resolved.sources).toMatchObject({ carryImages: 'template', carryProperties: 'template' });
+		expect(resolved.excludedProperties).not.toBe(globalSettings.excludedProperties);
+	});
+
 	it('merges tagging field by field, with preferred tags from the template only', () => {
 		const globalSettings = defaultGlobalSettings();
 		globalSettings.tagging = { ...globalSettings.tagging, aiTagging: true, format: 'snake', maxTags: 5 };

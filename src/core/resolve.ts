@@ -34,6 +34,11 @@ export interface RunConfig {
 	skipPreview: boolean;
 	references: { enabled: boolean; heading: string };
 	openAfterCreate: boolean;
+	/** Put the source's leading images at the top of the output. */
+	carryImages: boolean;
+	/** Copy the source's properties, minus tags and `excludedProperties`. */
+	carryProperties: boolean;
+	excludedProperties: string[];
 	omitEmptyProperties: boolean;
 	collision: 'number' | 'ask';
 	tagging: ResolvedTagging;
@@ -146,6 +151,13 @@ export function resolveRunConfig(input: ResolveInput): { config: RunConfig; noti
 			[['template', tpl.openAfterCreate], ['global', global.openAfterCreate]],
 			DEFAULTS.openAfterCreate,
 		),
+		carryImages: field('carryImages', [['template', tpl.carryImages], ['global', global.carryImages]], DEFAULTS.carryImages),
+		carryProperties: field(
+			'carryProperties',
+			[['template', tpl.carryProperties], ['global', global.carryProperties]],
+			DEFAULTS.carryProperties,
+		),
+		excludedProperties: [...field<readonly string[]>('excludedProperties', [['global', global.excludedProperties]], DEFAULTS.excludedProperties)],
 		omitEmptyProperties: field('omitEmptyProperties', [['template', tpl.omitEmptyProperties]], DEFAULTS.omitEmptyProperties),
 		collision: field('collision', [['global', global.collision]], DEFAULTS.collision),
 		tagging,

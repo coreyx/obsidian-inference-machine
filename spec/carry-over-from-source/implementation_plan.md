@@ -47,24 +47,24 @@ None at this time. The decisions behind this plan are Q40 to Q51:
 ### Settings model
 
 #### [MODIFY] `src/core/schema.ts`
-- [ ] **TASK-1:** Add the two settings to the data model.
+- [x] **TASK-1:** Add the two settings to the data model.
   - `GlobalSettings` gets `carryImages: boolean`, `carryProperties: boolean` and `excludedProperties: string[]`.
   - `Template` gets optional `carryImages?: boolean` and `carryProperties?: boolean`, each documented as inheriting the global value when left out.
   - `SCHEMA_VERSION` stays 1, because loading fills missing fields with their defaults (TASK-3).
 
 #### [MODIFY] `src/core/defaults.ts`
-- [ ] **TASK-2:** Add the defaults.
+- [x] **TASK-2:** Add the defaults.
   - `RunDefaults` and `DEFAULTS` get `carryImages: true`, `carryProperties: true` and `excludedProperties: ['aliases', 'cssclasses']`.
   - `defaultGlobalSettings()` copies them, with a fresh array for `excludedProperties`.
 
 #### [MODIFY] `src/core/data-validation.ts`
-- [ ] **TASK-3:** Load and validate the new fields.
+- [x] **TASK-3:** Load and validate the new fields.
   - Add `carryImages` and `carryProperties` to `OPTIONAL_BOOLEAN_FIELDS`, so templates load and import them with the existing checks.
   - In the global settings loader, read `carryImages` and `carryProperties` as booleans, falling back to `DEFAULTS`.
   - Read `excludedProperties` as an array of non-empty trimmed strings. A missing or invalid value falls back to `DEFAULTS.excludedProperties`, and bad entries are dropped with a warning.
 
 #### [MODIFY] `src/core/resolve.ts`
-- [ ] **TASK-4:** Resolve the new settings.
+- [x] **TASK-4:** Resolve the new settings.
   - `RunConfig` gets `carryImages` and `carryProperties`, each resolved template, then global, then default, with their `sources` recorded like `openAfterCreate`.
   - It also gets `excludedProperties`, resolved global, then default.
 

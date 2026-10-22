@@ -88,6 +88,10 @@ export interface Template {
 	skipPreview?: boolean;
 	references?: { enabled?: boolean; heading?: string };
 	openAfterCreate?: boolean;
+	/** Put the source note's leading images at the top of the output. Left out, the global setting applies. */
+	carryImages?: boolean;
+	/** Copy the source note's properties into the output's frontmatter. Left out, the global setting applies. */
+	carryProperties?: boolean;
 	/** Present only on built-in templates, so unedited copies can be upgraded (design decision 2). */
 	origin?: TemplateOrigin;
 	/** Rules, one per line, that preselect this template for matching notes (REQ-22). */
@@ -146,6 +150,12 @@ export interface GlobalSettings {
 	tagging: TaggingSettings;
 	references: { enabled: boolean; heading: string };
 	openAfterCreate: boolean;
+	/** Put the images at the front of the source note at the top of the output note. */
+	carryImages: boolean;
+	/** Copy the source note's properties, other than tags, into the output note. */
+	carryProperties: boolean;
+	/** Property names never copied from the source, matched case-insensitively. */
+	excludedProperties: string[];
 	/** What to do when the output name is taken (10.0.4). */
 	collision: 'number' | 'ask';
 	lmStudioPort: number;

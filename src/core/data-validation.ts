@@ -168,7 +168,7 @@ function checkProperties(raw: unknown, label: string): Checked<PropertyDef[]> {
 }
 
 const OPTIONAL_TEXT_FIELDS = ['prompt', 'context', 'noteNameFormat', 'noteContentFormat', 'engineId'] as const;
-const OPTIONAL_BOOLEAN_FIELDS = ['omitEmptyProperties', 'skipPreview', 'openAfterCreate'] as const;
+const OPTIONAL_BOOLEAN_FIELDS = ['omitEmptyProperties', 'skipPreview', 'openAfterCreate', 'carryImages', 'carryProperties'] as const;
 
 /**
  * Validates one template. With `requireId`, a template without an id is
@@ -233,6 +233,22 @@ export function checkTemplate(raw: unknown, options: { requireId: boolean }): Ch
 	return { value: template, problems };
 }
 
+/**
+ * Reads the global list of properties never copied from the source. A data
+ * file from before the setting existed gets the default list; an empty list is
+ * kept, since it means "copy everything".
+ */
+function checkExcludedProperties(raw: unknown, problems: string[]): string[] {
+	if (raw === undefined) return [...DEFAULTS.excludedProperties];
+	if (!Array.isArray(raw)) {
+		problems.push('Global settings: "Properties not to copy" isn\'t a list, so the default list is used');
+		return [...DEFAULTS.excludedProperties];
+	}
+	const names = raw.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter((item) => item !== '');
+	if (names.length !== raw.length) problems.push('Global settings: entries in "Properties not to copy" that aren\'t property names were left out');
+	return names;
+}
+
 /** Validates the global config, filling anything missing or invalid from the built-in defaults. */
 export function fillGlobal(raw: unknown): Checked<GlobalSettings> {
 	const source = isRecord(raw) ? raw : {};
@@ -251,6 +267,9 @@ export function fillGlobal(raw: unknown): Checked<GlobalSettings> {
 			heading: typeof references.heading === 'string' ? references.heading : DEFAULTS.references.heading,
 		},
 		openAfterCreate: typeof source.openAfterCreate === 'boolean' ? source.openAfterCreate : DEFAULTS.openAfterCreate,
+		carryImages: typeof source.carryImages === 'boolean' ? source.carryImages : DEFAULTS.carryImages,
+		carryProperties: typeof source.carryProperties === 'boolean' ? source.carryProperties : DEFAULTS.carryProperties,
+		excludedProperties: checkExcludedProperties(source.excludedProperties, problems),
 		collision: source.collision === 'ask' || source.collision === 'number' ? source.collision : DEFAULTS.collision,
 		lmStudioPort:
 			isPositiveInteger(source.lmStudioPort) && source.lmStudioPort <= 65535 ? source.lmStudioPort : DEFAULTS.lmStudioPort,

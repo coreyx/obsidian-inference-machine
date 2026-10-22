@@ -100,6 +100,8 @@ describe('checkTemplate', () => {
 		omitEmptyProperties: true,
 		skipPreview: false,
 		openAfterCreate: true,
+		carryImages: false,
+		carryProperties: true,
 		location: { mode: 'folder', path: 'Lit' },
 		properties: [{ name: 'author', value: '{{properties.author}}', type: 'multitext' }],
 		tagging: { format: 'camel' },
@@ -151,6 +153,28 @@ describe('fillGlobal and fillUiState', () => {
 			noteNameFormat: '{{date}} {{title}}',
 			collision: 'ask',
 		});
+	});
+
+	it('carries the source over by default, keeping the rest of an older data file intact', () => {
+		const global = fillGlobal({ openAfterCreate: false }).value;
+		expect(global).toMatchObject({ openAfterCreate: false, carryImages: true, carryProperties: true, excludedProperties: ['aliases', 'cssclasses'] });
+		expect(global?.excludedProperties).not.toBe(DEFAULTS.excludedProperties);
+		expect(fillGlobal({ carryImages: false, carryProperties: false, excludedProperties: [] }).value).toMatchObject({
+			carryImages: false,
+			carryProperties: false,
+			excludedProperties: [],
+		});
+	});
+
+	it('cleans up the list of properties not to copy', () => {
+		expect(fillGlobal({ excludedProperties: [' type ', 'aliases'] })).toEqual(expect.objectContaining({ problems: [] }));
+		expect(fillGlobal({ excludedProperties: [' type ', 'aliases'] }).value?.excludedProperties).toEqual(['type', 'aliases']);
+		const mixed = fillGlobal({ excludedProperties: ['type', 3, '  '] });
+		expect(mixed.value?.excludedProperties).toEqual(['type']);
+		expect(mixed.problems).toEqual(['Global settings: entries in "Properties not to copy" that aren\'t property names were left out']);
+		const wrong = fillGlobal({ excludedProperties: 'aliases' });
+		expect(wrong.value?.excludedProperties).toEqual(['aliases', 'cssclasses']);
+		expect(wrong.problems).toEqual(['Global settings: "Properties not to copy" isn\'t a list, so the default list is used']);
 	});
 
 	it('forgets unusable popup state', () => {
