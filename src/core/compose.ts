@@ -53,6 +53,39 @@ export interface AssembleExtras {
 	images?: readonly CarriedImage[];
 }
 
+/**
+ * Copies one property value for the new note. A date that a YAML parser read
+ * as a `Date` is written back as the date text it was, rather than as a
+ * timestamp, the way `{{properties.x}}` and triggers read dates.
+ */
+function copyValue(value: unknown): unknown {
+	if (value instanceof Date) {
+		if (Number.isNaN(value.getTime())) return '';
+		const iso = value.toISOString();
+		return iso.slice(11, 16) === '00:00' ? iso.slice(0, 10) : iso.slice(0, 16);
+	}
+	if (Array.isArray(value)) return value.map(copyValue);
+	if (value !== null && typeof value === 'object') {
+		return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, copyValue(item)]));
+	}
+	return value;
+}
+
+/**
+ * The source note's properties to copy into the new note (Q47): all of them
+ * except tags, which the tag pipeline already merges, and the excluded names,
+ * matched case-insensitively as Obsidian matches property names. Values are
+ * copied, so the new note never shares data with the source's snapshot.
+ */
+export function copiedProperties(note: NoteSnapshot, excluded: readonly string[]): Record<string, unknown> {
+	const skip = new Set(['tags', 'tag', ...excluded.map((name) => name.toLowerCase())]);
+	const copied: Record<string, unknown> = {};
+	for (const [name, value] of Object.entries(note.properties)) {
+		if (!skip.has(name.toLowerCase())) copied[name] = copyValue(value);
+	}
+	return copied;
+}
+
 /** Renders a run's output note. */
 export async function composeNote(input: ComposeInput): Promise<ComposedNote> {
 	const { config, note } = input;
@@ -96,6 +129,7 @@ export async function composeNote(input: ComposeInput): Promise<ComposedNote> {
 				leadingImages: config.carryImages ? images.filter((image) => !alreadyEmbedded(body, image.targets)).map((image) => image.embed) : [],
 				properties,
 				aiProperties: prepared.properties,
+				sourceProperties: config.carryProperties ? copiedProperties(note, config.excludedProperties) : {},
 				tags: tags.tags,
 				...(config.references.enabled && link !== undefined ? { references: { heading: config.references.heading, link } } : {}),
 				omitEmptyProperties: config.omitEmptyProperties,

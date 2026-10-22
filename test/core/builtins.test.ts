@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import YAML from 'yaml';
 import { BUILT_INS, type BuiltInTemplate } from '../../src/core/builtins';
 import { READING_GUIDANCE } from '../../src/core/builtins/reading-guidance';
-import { composeNote } from '../../src/core/compose';
+import { composeNote, copiedProperties } from '../../src/core/compose';
 import { defaultGlobalSettings } from '../../src/core/defaults';
 import { resolveRunConfig } from '../../src/core/resolve';
 import type { Template } from '../../src/core/schema';
@@ -77,6 +77,34 @@ describe('the built-in templates (REQ-15)', () => {
 		const off = await derive({ ...builtIn('key-points'), carryImages: false }, note);
 		expect(off.composed.leadingImages).toEqual([]);
 		expect(off.composed.assemble({ images })).not.toContain('cover.png');
+	});
+
+	it('copies the source\'s properties, minus tags and excluded ones, under the template\'s (Q47, Q48)', async () => {
+		const note = snapshot('Notes/Dune.md', 'x', {
+			tags: ['books'],
+			Aliases: ['Dune notes'],
+			cssclasses: ['wide'],
+			created: '2020-01-01',
+			status: 'draft',
+			Type: 'book',
+			read: new Date(Date.UTC(2026, 2, 1)),
+			finished: new Date(Date.UTC(2026, 2, 1, 21, 30)),
+			meta: { pages: 412, when: new Date(Date.UTC(2026, 0, 2)) },
+		});
+		const { frontmatter } = await derive(builtIn('key-points'), note);
+		expect(frontmatter).toEqual({
+			created: '2026-10-17',
+			status: 'draft',
+			Type: 'book',
+			read: '2026-03-01',
+			finished: '2026-03-01T21:30',
+			meta: { pages: 412, when: '2026-01-02' },
+		});
+
+		expect(copiedProperties(note, ['TYPE', 'status'])).not.toHaveProperty('Type');
+		expect(copiedProperties(snapshot('A.md', 'x', { bad: new Date(Number.NaN) }), [])).toEqual({ bad: '' });
+		const off = await derive({ ...builtIn('key-points'), carryProperties: false }, note);
+		expect(off.frontmatter).toEqual({ created: '2026-10-17' });
 	});
 
 	it('adds a created date with the run\'s date to every built-in (15.9)', async () => {

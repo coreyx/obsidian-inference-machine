@@ -83,7 +83,7 @@ describe('a run with defaults', () => {
 		const { run, fake, engine } = await setup();
 		const result = preview(await run());
 		expect(result.path).toBe('Projects/Alpha - Summary.md');
-		expect(result.text).toBe('---\ntags:\n  - Project\n  - launch\n---\n## Summary\n\nShipping next week.\n\n# References\n\n- [[Alpha]]\n');
+		expect(result.text).toBe('---\nauthor: Ada\ntags:\n  - Project\n  - launch\n---\n## Summary\n\nShipping next week.\n\n# References\n\n- [[Alpha]]\n');
 		expect(result.warnings).toEqual([]);
 		expect(fake.writes).toEqual([]);
 		expect(engine.received.map((r) => r.mode)).toEqual(['stream']);
@@ -546,7 +546,7 @@ describe('inline prompts and AI tagging', () => {
 		expect(engine.received.map((r) => r.mode).sort()).toEqual(['complete', 'stream']);
 		const tagsRequest = engine.received.find((r) => r.mode === 'complete')!.request.user;
 		expect(tagsRequest).toContain('ai/');
-		expect(YAML.parse(result.text.split('---')[1]!)).toEqual({ tags: ['Project', 'launch', 'DevOps', 'ai/agents'] });
+		expect(YAML.parse(result.text.split('---')[1]!)).toEqual({ author: 'Ada', tags: ['Project', 'launch', 'DevOps', 'ai/agents'] });
 		expect(result.warnings).toContain('Tags left out: 1984 (not a valid tag).');
 	});
 

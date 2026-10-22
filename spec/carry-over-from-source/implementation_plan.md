@@ -113,7 +113,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
   - `AssembleInput` gets `sourceProperties: Record<string, unknown>`.
   - `assembleNote` adds them after the AI output's properties, and only those whose name isn't already set. Names match case-insensitively, as Obsidian matches property names. So template properties win, then the output's frontmatter, then the source (Q48).
   - Empty ones are then left out by the existing `omitEmptyProperties` step (Q50).
-- [ ] **TASK-11:** Add `copiedProperties(note: NoteSnapshot, excluded: string[]): Record<string, unknown>` in `compose.ts`.
+- [x] **TASK-11:** Add `copiedProperties(note: NoteSnapshot, excluded: string[]): Record<string, unknown>` in `compose.ts`.
   - It returns `note.properties` minus `tags` and `tag`, which go through the tag pipeline already, and minus every excluded name, matched case-insensitively.
   - A `Date` value is written back as `YYYY-MM-DD`, or as `YYYY-MM-DDTHH:mm` when it has a time, matching how `{{properties.x}}` and triggers already read dates. A YAML date then stays a date instead of becoming a timestamp.
   - Values are copied deeply, so the snapshot is never shared with the new note's data.
