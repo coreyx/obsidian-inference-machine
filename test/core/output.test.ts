@@ -159,6 +159,23 @@ describe('assembleNote: leading images', () => {
 	});
 });
 
+describe('assembleNote: source properties (Q48, Q50)', () => {
+	it('adds the source\'s properties under the template\'s and the AI output\'s', () => {
+		const text = assemble({
+			properties: [{ name: 'created', value: '2026-10-22' }],
+			aiProperties: { Status: 'summary' },
+			sourceProperties: { created: '2020-01-01', status: 'draft', author: ['[[Ada]]'], rating: 4 },
+		});
+		expect(YAML.parse(text.split('---')[1]!)).toEqual({ created: '2026-10-22', Status: 'summary', author: ['[[Ada]]'], rating: 4 });
+	});
+
+	it('leaves out empty copied properties when the template says so', () => {
+		const sourceProperties = { source: '', author: [], status: 'draft' };
+		expect(YAML.parse(assemble({ sourceProperties, omitEmptyProperties: true }).split('---')[1]!)).toEqual({ status: 'draft' });
+		expect(assemble({ sourceProperties, omitEmptyProperties: false })).toContain('author: []');
+	});
+});
+
 describe('assembleNote', () => {
 	it('puts a blank line after every heading in the note, its own and the references heading', () => {
 		const text = assemble({ body: '## Summary\nText\n# References\n- [[Other]]', references: { heading: '# References', link: '[[Alpha]]' } });

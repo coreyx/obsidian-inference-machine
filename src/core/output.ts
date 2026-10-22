@@ -267,6 +267,8 @@ export interface AssembleInput {
 	properties: TypedProperty[];
 	/** Properties from the AI output's frontmatter. The template's win on conflicts (8.0.7). */
 	aiProperties: Record<string, unknown>;
+	/** Properties copied from the source note. The template's and the AI output's win on conflicts (Q48). */
+	sourceProperties?: Record<string, unknown>;
 	/** The tag pipeline's result. */
 	tags: string[];
 	/** Where to link back to the source; left out when the link is off. */
@@ -281,9 +283,12 @@ export interface AssembleInput {
 export function assembleNote(input: AssembleInput): string {
 	const frontmatter: Record<string, unknown> = {};
 	for (const { name, value } of input.properties) frontmatter[name] = value;
-	for (const [name, value] of Object.entries(input.aiProperties)) {
-		// Template properties win, matched the way Obsidian matches property names.
-		if (!Object.keys(frontmatter).some((existing) => existing.toLowerCase() === name.toLowerCase())) frontmatter[name] = value;
+	// Earlier layers win, with names matched the way Obsidian matches property names:
+	// the template's properties, then the AI output's, then the source note's.
+	for (const layer of [input.aiProperties, input.sourceProperties ?? {}]) {
+		for (const [name, value] of Object.entries(layer)) {
+			if (!Object.keys(frontmatter).some((existing) => existing.toLowerCase() === name.toLowerCase())) frontmatter[name] = value;
+		}
 	}
 	if (input.omitEmptyProperties) {
 		for (const [name, value] of Object.entries(frontmatter)) if (isEmptyProperty(value)) delete frontmatter[name];

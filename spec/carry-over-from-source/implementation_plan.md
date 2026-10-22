@@ -109,7 +109,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
 ### Source frontmatter
 
 #### [MODIFY] `src/core/output.ts` and `src/core/compose.ts`
-- [ ] **TASK-10:** Copy the source's properties into the new note's frontmatter.
+- [x] **TASK-10:** Copy the source's properties into the new note's frontmatter.
   - `AssembleInput` gets `sourceProperties: Record<string, unknown>`.
   - `assembleNote` adds them after the AI output's properties, and only those whose name isn't already set. Names match case-insensitively, as Obsidian matches property names. So template properties win, then the output's frontmatter, then the source (Q48).
   - Empty ones are then left out by the existing `omitEmptyProperties` step (Q50).
