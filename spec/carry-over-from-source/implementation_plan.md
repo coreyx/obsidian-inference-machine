@@ -86,7 +86,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
   - Targets match case-insensitively, by path or by filename alone, ignoring size, caption and `#subpath`, and only outside code blocks.
 
 #### [MODIFY] `src/obsidian/links.ts`
-- [ ] **TASK-7:** Add `imageEmbed(app, source: TFile, image: LeadingImage, outputPath: string): { embed: string; targets: string[] }`, which writes an image's embed for the new note.
+- [x] **TASK-7:** Add `imageEmbed(app, source: TFile, image: LeadingImage, outputPath: string): { embed: string; targets: string[] }`, which writes an image's embed for the new note.
   - **External images** keep `raw` exactly as written.
   - **Internal images** are resolved with `app.metadataCache.getFirstLinkpathDest(image.target, source.path)`.
     - When the file is found, the embed is `!` plus `app.fileManager.generateMarkdownLink(file, outputPath, undefined, image.display)`. That follows the vault's link settings for the new location, and keeps the size or caption as the link's display text.

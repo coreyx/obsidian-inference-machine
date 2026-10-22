@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { sourceLink } from '../../src/obsidian/links';
+import { findLeadingImages } from '../../src/core/leading-images';
+import { imageEmbed, sourceLink } from '../../src/obsidian/links';
 import { readNote } from '../../src/obsidian/note-reader';
 import { createNote, ensureFolder, fileAt, notePath, openNote, outputFolder, planPath } from '../../src/obsidian/note-writer';
 import { Secrets, secretIdFrom } from '../../src/obsidian/secrets';
@@ -152,6 +153,25 @@ describe('links and secrets', () => {
 	it('builds the source link with the vault\'s link settings', () => {
 		const fake = new FakeApp({ 'Projects/Alpha.md': 'x' });
 		expect(sourceLink(fake.app, fileAt(fake.app, 'Projects/Alpha.md')!, 'Projects/Alpha - Summary.md')).toBe('[[Alpha]]');
+	});
+
+	it('relinks a leading image for the new note, keeping its size, and keeps URLs and unknown files as written (Q45)', () => {
+		const fake = new FakeApp({ 'Reading/Dune.md': 'x', 'Attachments/my cover.png': 'png' });
+		const source = fileAt(fake.app, 'Reading/Dune.md')!;
+		const [wiki, relative, url, missing] = findLeadingImages(
+			'![[my cover.png|200]] ![Cover](../Attachments/my%20cover.png) ![](https://example.com/c.jpg) ![[gone.png]]',
+		);
+		expect(imageEmbed(fake.app, source, wiki!, 'Summaries/Dune - Summary.md')).toEqual({
+			embed: '![[my cover.png|200]]',
+			targets: ['my cover.png', 'Attachments/my cover.png'],
+		});
+		fake.linkStyle = 'markdown';
+		expect(imageEmbed(fake.app, source, relative!, 'Summaries/Deep/Dune - Summary.md').embed).toBe('![Cover](../../Attachments/my%20cover.png)');
+		expect(imageEmbed(fake.app, source, url!, 'Summaries/Dune - Summary.md')).toEqual({
+			embed: '![](https://example.com/c.jpg)',
+			targets: ['https://example.com/c.jpg'],
+		});
+		expect(imageEmbed(fake.app, source, missing!, 'Summaries/Dune - Summary.md')).toEqual({ embed: '![[gone.png]]', targets: ['gone.png'] });
 	});
 
 	it('reads and writes SecretStorage, and makes valid ids', () => {

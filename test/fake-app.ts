@@ -33,6 +33,27 @@ function buildCache(content: string): FakeCache {
 	return cache;
 }
 
+/** Resolves `.` and `..` segments in a vault path. */
+function normalizePath(path: string): string {
+	const parts: string[] = [];
+	for (const part of path.split('/')) {
+		if (part === '..') parts.pop();
+		else if (part !== '.' && part !== '') parts.push(part);
+	}
+	return parts.join('/');
+}
+
+/** The path from the note at `from` to the file at `to`, as a relative Markdown link writes it. */
+function relativePath(from: string, to: string): string {
+	const fromParts = from.split('/').slice(0, -1);
+	const toParts = to.split('/');
+	while (fromParts.length > 0 && toParts.length > 1 && fromParts[0] === toParts[0]) {
+		fromParts.shift();
+		toParts.shift();
+	}
+	return [...fromParts.map(() => '..'), ...toParts].join('/');
+}
+
 /**
  * An in-memory Obsidian app: a vault of notes and folders, a metadata cache
  * built from the notes' text, link generation, a workspace that records what
@@ -45,6 +66,8 @@ export class FakeApp {
 	readonly opened: string[] = [];
 	readonly secrets = new Map<string, string>();
 	activeFile: TFile | null = null;
+	/** The vault's link format: wikilinks, or Markdown links with paths relative to the note. */
+	linkStyle: 'wiki' | 'markdown' = 'wiki';
 	/** Paths the adapter reports as existing on disk though the vault index doesn't list them (case-insensitive FS). */
 	readonly diskOnly = new Set<string>();
 	private readonly listeners = new Map<string, Listener[]>();
@@ -85,6 +108,24 @@ export class FakeApp {
 		list.push(callback);
 		this.listeners.set(name, list);
 		return { name, callback };
+	}
+
+	/**
+	 * Finds the file a link points to, the way Obsidian does: a path relative to
+	 * the linking note, a vault path, or just a filename anywhere in the vault.
+	 */
+	private resolveLink(linkpath: string, sourcePath: string): TFile | null {
+		const folder = sourcePath.includes('/') ? sourcePath.slice(0, sourcePath.lastIndexOf('/')) : '';
+		const relative = normalizePath(folder === '' ? linkpath : `${folder}/${linkpath}`);
+		for (const path of [relative, linkpath, `${linkpath}.md`]) {
+			const entry = this.files.get(path);
+			if (entry) return entry.file;
+		}
+		const wanted = (linkpath.split('/').pop() ?? linkpath).toLowerCase();
+		for (const { file } of this.files.values()) {
+			if (file.name.toLowerCase() === wanted || (file.extension === 'md' && file.basename.toLowerCase() === wanted)) return file;
+		}
+		return null;
 	}
 
 	/** Fires a metadata-cache or vault event to whoever subscribed. */
@@ -146,10 +187,16 @@ export class FakeApp {
 				const entry = this.files.get(file.path);
 				return entry ? buildCache(entry.content) : null;
 			},
+			getFirstLinkpathDest: (linkpath: string, sourcePath: string) => this.resolveLink(linkpath, sourcePath),
 			on: (name: string, callback: Listener) => this.on(`metadata:${name}`, callback),
 		},
 		fileManager: {
-			generateMarkdownLink: (file: TFile) => `[[${file.basename}]]`,
+			generateMarkdownLink: (file: TFile, sourcePath: string, subpath?: string, alias?: string) => {
+				// Obsidian links a note by its name and any other file by its name with extension.
+				const name = file.extension === 'md' ? file.basename : file.name;
+				if (this.linkStyle === 'wiki') return `[[${name}${subpath ?? ''}${alias !== undefined ? `|${alias}` : ''}]]`;
+				return `[${alias ?? name}](${relativePath(sourcePath, file.path).replaceAll(' ', '%20')}${subpath ?? ''})`;
+			},
 		},
 		workspace: {
 			getActiveFile: () => this.activeFile,
