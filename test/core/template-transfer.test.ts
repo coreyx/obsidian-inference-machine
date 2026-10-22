@@ -29,6 +29,8 @@ const full: Template = {
 	skipPreview: false,
 	references: { enabled: true, heading: '## Sources' },
 	openAfterCreate: false,
+	carryImages: false,
+	carryProperties: true,
 	origin: { builtInId: 'x', version: 1, hash: 'h' },
 };
 
@@ -126,6 +128,9 @@ describe('the example templates (20.5)', () => {
 			const template = example(name);
 			expect(template.prompt).toBeUndefined();
 			expect(template.omitEmptyProperties).toBe(true);
+			// They define their own properties, but a dish photo, cover or poster carries over (Q51).
+			expect(template.carryProperties).toBe(false);
+			expect(template.carryImages).toBeUndefined();
 			const text = JSON.stringify(template);
 			expect(text).toMatch(/leave empty/iu);
 			const lines = template.noteContentFormat!.split('\n');
@@ -136,7 +141,8 @@ describe('the example templates (20.5)', () => {
 	});
 
 	it('turn a rough recipe into a recipe card', async () => {
-		const note = 'pancakes - 2 eggs, 1 cup flour, milk. mix, rest 10 min, fry. serves 4';
+		// The note's own status isn't copied, but its photo is (Q51).
+		const note = '---\nstatus: draft\n---\n![[pancakes.jpg]]\n\npancakes - 2 eggs, 1 cup flour, milk. mix, rest 10 min, fry. serves 4';
 		const { frontmatter, body, engine } = await runExample(example('recipe-card'), 'Kitchen/pancakes.md', note, (prompt) => {
 			if (prompt.startsWith('the name of the dish')) return 'Pancakes';
 			if (prompt.startsWith('how many servings')) return '4';
@@ -146,7 +152,7 @@ describe('the example templates (20.5)', () => {
 		});
 		expect(engine.received).toHaveLength(1);
 		expect(frontmatter).toEqual({ servings: 4, categories: ['[[Recipes]]'], created: '2026-10-17', tags: ['recipes'] });
-		expect(body).toContain('## Ingredients\n\n- [ ] 2 eggs');
+		expect(body.startsWith('![[pancakes.jpg]]\n\n## Ingredients\n\n- [ ] 2 eggs')).toBe(true);
 		expect(body).toContain('1. Mix.');
 	});
 

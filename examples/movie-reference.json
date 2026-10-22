@@ -48,7 +48,8 @@
 				}
 			],
 			"noteContentFormat": "## Plot\n\n{{\"what the note says the film is about, in two or three sentences. Use only what the note says, and leave empty if it says nothing about the plot\"}}\n\n## Notes\n\n{{\"the note's own thoughts and reactions about the film, as a bullet list. Leave empty if there are none\"}}",
-			"omitEmptyProperties": true
+			"omitEmptyProperties": true,
+			"carryProperties": false
 		}
 	]
 }

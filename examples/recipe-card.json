@@ -38,7 +38,8 @@
 				}
 			],
 			"noteContentFormat": "## Ingredients\n\n{{\"every ingredient the note lists, as an Obsidian checklist with one '- [ ] ' line per ingredient, keeping each quantity exactly as the note gives it. Add no ingredients the note doesn't mention\"}}\n\n## Instructions\n\n{{\"the steps to make the dish, as a numbered list, in the note's order, written out clearly. Add no steps the note doesn't give\"}}\n\n## Notes\n\n{{\"tips, variations or warnings the note gives, as a bullet list. Leave empty if there are none\"}}",
-			"omitEmptyProperties": true
+			"omitEmptyProperties": true,
+			"carryProperties": false
 		}
 	]
 }

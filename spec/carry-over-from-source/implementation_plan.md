@@ -140,7 +140,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
   - The other three built-ins leave both unset, so they follow the global setting.
 
 #### [MODIFY] `examples/recipe-card.json`, `examples/book-reference.json`, `examples/movie-reference.json`
-- [ ] **TASK-15:** Add `"carryProperties": false` to each example, and leave `carryImages` unset so a dish photo, book cover or film poster carries over.
+- [x] **TASK-15:** Add `"carryProperties": false` to each example, and leave `carryImages` unset so a dish photo, book cover or film poster carries over.
 
 ### Tests
 
