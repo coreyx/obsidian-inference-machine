@@ -1,5 +1,19 @@
 # Release notes
 
+## 0.1.1 (2026-10-21)
+
+A small fix to how new notes are laid out. To update now, run **BRAT: Plugins: Check for updates to all beta plugins and UPDATE** from the command palette.
+
+### A blank line after every heading
+
+Every heading in a new note is now followed by a blank line, whichever template or model wrote it, the `# References` heading included. Before, some notes had text, lists and the link back to the source directly under their headings.
+
+The built-in templates' prompts now show the same layout. If you haven't edited a built-in template, it updates itself. If you imported the Recipe card, Book reference or Movie reference example, import it again to get the new layout in the template, though notes it creates get the blank lines either way.
+
+### Install steps
+
+The README's BRAT steps now match BRAT 2.2.0.
+
 ## 0.1.0 (2026-10-19)
 
 The first release of Inference Machine: derive a new note from an existing one with an AI model, the way Web Clipper turns a web page into a note. Install it with [BRAT](https://github.com/TfTHacker/obsidian42-brat) using `coreyx/obsidian-inference-machine`; the [README](README.md#installation) has the steps. It needs Obsidian 1.13.4 or later, and works on desktop and mobile.

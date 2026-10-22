@@ -4,6 +4,12 @@ All notable changes to Inference Machine are recorded here. The format follows [
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-21
+
+### Changed
+
+- The README's BRAT install steps match BRAT 2.2.0.
+
 ### Fixed
 
 - Every heading in a new note is now followed by a blank line, whichever template or model wrote it, the `# References` heading included. The example outputs in the built-in templates' prompts and the example templates now show the blank line too. Unedited built-in templates update themselves; an imported example template needs importing again to get the new layout.
@@ -24,5 +30,6 @@ The first release, installable with BRAT.
 - Support for reasoning models: `<think>` working is removed from responses, the output limit is only sent when set (Anthropic gets 8,192), and an answer cut short by reasoning is reported as such.
 - For LM Studio engines, the context length the model is loaded with is shown in the engine's settings and used for the long-note warning, and an engine can load the model with its own context window before each run.
 
-[Unreleased]: https://github.com/coreyx/obsidian-inference-machine/compare/0.1.0...HEAD
+[Unreleased]: https://github.com/coreyx/obsidian-inference-machine/compare/0.1.1...HEAD
+[0.1.1]: https://github.com/coreyx/obsidian-inference-machine/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/coreyx/obsidian-inference-machine/releases/tag/0.1.0
