@@ -1,3 +1,4 @@
+import { alreadyEmbedded, findLeadingImages, type CarriedImage, type LeadingImage } from './leading-images';
 import type { NoteSnapshot } from './note';
 import { assembleNote, prepareOutput, typeProperties, type ParseYaml, type RenderedProperty, type StringifyYaml } from './output';
 import type { RunConfig } from './resolve';
@@ -38,8 +39,18 @@ export interface ComposedNote {
 	notices: string[];
 	/** Tags the pipeline dropped, for the preview's warnings (13.0.5). */
 	dropped: DroppedTag[];
-	/** The final note text, with the source link under the references heading when given. */
-	assemble(link?: string): string;
+	/** The source's leading images, when the run carries them; the caller relinks them for the output path. */
+	leadingImages: LeadingImage[];
+	/** The final note text, with the carried images at the top and the source link under the references heading. */
+	assemble(extras?: AssembleExtras): string;
+}
+
+/** What the note gets once its path is known. */
+export interface AssembleExtras {
+	/** The link back to the source; left out when the link is off. */
+	link?: string;
+	/** The leading images, relinked for the output path. */
+	images?: readonly CarriedImage[];
 }
 
 /** Renders a run's output note. */
@@ -77,9 +88,12 @@ export async function composeNote(input: ComposeInput): Promise<ComposedNote> {
 		fileName,
 		notices: [...notices],
 		dropped: tags.dropped,
-		assemble: (link) =>
+		leadingImages: config.carryImages ? findLeadingImages(note.body) : [],
+		assemble: ({ link, images = [] } = {}) =>
 			assembleNote({
 				body,
+				// An image the output already shows isn't added again (Q46).
+				leadingImages: config.carryImages ? images.filter((image) => !alreadyEmbedded(body, image.targets)).map((image) => image.embed) : [],
 				properties,
 				aiProperties: prepared.properties,
 				tags: tags.tags,

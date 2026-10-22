@@ -149,6 +149,16 @@ describe('blankLineAfterHeadings', () => {
 	});
 });
 
+describe('assembleNote: leading images', () => {
+	it('puts the images first, then a blank line, then the body', () => {
+		expect(assemble({ body: '## Summary\nText', leadingImages: ['![[a.png]]', '![[b.png|200]]'] })).toBe('![[a.png]]\n![[b.png|200]]\n\n## Summary\n\nText\n');
+		expect(assemble({ body: '', leadingImages: ['![[a.png]]'], references: { heading: '# References', link: '[[S]]' } })).toBe(
+			'![[a.png]]\n\n# References\n\n- [[S]]\n',
+		);
+		expect(assemble({ leadingImages: [] })).toBe('Body\n');
+	});
+});
+
 describe('assembleNote', () => {
 	it('puts a blank line after every heading in the note, its own and the references heading', () => {
 		const text = assemble({ body: '## Summary\nText\n# References\n- [[Other]]', references: { heading: '# References', link: '[[Alpha]]' } });

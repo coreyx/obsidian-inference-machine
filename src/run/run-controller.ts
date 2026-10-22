@@ -309,7 +309,7 @@ export class RunController {
 		const link = config.references.enabled ? sourceLink(app, source, path) : undefined;
 		const dropped = droppedWarning(composed.dropped);
 		const preview: RunPreview = {
-			text: composed.assemble(link),
+			text: composed.assemble({ link }),
 			path,
 			warnings: [...warnings, ...(dropped ? [dropped] : []), ...notices],
 			config,

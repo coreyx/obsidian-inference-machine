@@ -19,6 +19,13 @@ export interface LeadingImage {
 	external: boolean;
 }
 
+/** A leading image's embed as written in the new note, with the targets that identify it. */
+export interface CarriedImage {
+	embed: string;
+	/** The source's target, and the resolved file's path when there is one, for spotting duplicates. */
+	targets: string[];
+}
+
 /** The image formats Obsidian shows when embedded. */
 const IMAGE_EXTENSIONS = new Set(['avif', 'bmp', 'gif', 'jpeg', 'jpg', 'png', 'svg', 'webp']);
 

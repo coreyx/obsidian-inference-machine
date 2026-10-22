@@ -94,7 +94,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
   - `targets` holds the source's target and the resolved file's path, for `alreadyEmbedded`.
 
 #### [MODIFY] `src/core/output.ts` and `src/core/compose.ts`
-- [ ] **TASK-8:** Put the carried images at the top of the note.
+- [x] **TASK-8:** Put the carried images at the top of the note.
   - `AssembleInput` gets `leadingImages?: string[]`, the final embeds. `assembleNote` puts them, one per line, followed by a blank line, above the body, before the references link and `blankLineAfterHeadings` run.
   - `ComposedNote.assemble` takes `{ link?: string; images?: { embed: string; targets: string[] }[] }` instead of a bare link.
   - When `config.carryImages` is on, it passes the embeds whose targets the body doesn't already embed (`alreadyEmbedded`).

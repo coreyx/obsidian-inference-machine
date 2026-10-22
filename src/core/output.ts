@@ -271,6 +271,8 @@ export interface AssembleInput {
 	tags: string[];
 	/** Where to link back to the source; left out when the link is off. */
 	references?: { heading: string; link: string };
+	/** Embeds of the source's leading images, put at the top of the body. */
+	leadingImages?: readonly string[];
 	omitEmptyProperties: boolean;
 	stringifyYaml: StringifyYaml;
 }
@@ -289,6 +291,10 @@ export function assembleNote(input: AssembleInput): string {
 	if (input.tags.length > 0) frontmatter.tags = [...input.tags];
 
 	let body = input.body;
+	if (input.leadingImages && input.leadingImages.length > 0) {
+		const images = input.leadingImages.join('\n');
+		body = body.trim() === '' ? images : `${images}\n\n${body}`;
+	}
 	if (input.references) body = addReferenceLink(body, input.references.heading, input.references.link);
 	body = blankLineAfterHeadings(body);
 	if (!body.endsWith('\n')) body += '\n';

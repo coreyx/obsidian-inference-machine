@@ -1,5 +1,5 @@
 import type { App, TFile } from 'obsidian';
-import type { LeadingImage } from '../core/leading-images';
+import type { CarriedImage, LeadingImage } from '../core/leading-images';
 
 /**
  * The link back to the source note, written the way the vault's link
@@ -9,13 +9,6 @@ import type { LeadingImage } from '../core/leading-images';
  */
 export function sourceLink(app: App, source: TFile, outputPath: string): string {
 	return app.fileManager.generateMarkdownLink(source, outputPath);
-}
-
-/** A leading image's embed as written in the new note, with the targets that identify it. */
-export interface CarriedImage {
-	embed: string;
-	/** The source's target, and the resolved file's path when there is one, for spotting duplicates. */
-	targets: string[];
 }
 
 /**

@@ -27,7 +27,7 @@ const builtIn = (id: string) => instantiateBuiltIn(BUILT_INS.find((b) => b.built
 async function derive(template: Template, note = snapshot('Notes/Plain.md', 'Plain note text.'), mainOutput = 'Output') {
 	const { config } = resolveRunConfig({ popup: {}, template, globalSettings: defaultGlobalSettings(), engines: [] });
 	const composed = await composeNote({ config, note, now, mainOutput, answers: new Map(), aiTags: [], vaultTags: [], yaml });
-	const text = composed.assemble('[[Plain]]');
+	const text = composed.assemble({ link: '[[Plain]]' });
 	const frontmatter = YAML.parse(/^---\n([\s\S]*?)\n---/u.exec(text)?.[1] ?? '') as Record<string, unknown>;
 	return { text, frontmatter, composed };
 }
@@ -61,6 +61,22 @@ describe('the built-in templates (REQ-15)', () => {
 	it('writes a blank line after each heading of a response that has none', async () => {
 		const { text } = await derive(builtIn('action-items'), undefined, '## Action items\n- [ ] Ship it\n## Decisions\n- Ship Friday');
 		expect(text).toContain('## Action items\n\n- [ ] Ship it\n## Decisions\n\n- Ship Friday');
+	});
+
+	it('carries the source\'s leading images, unless the output shows them or the setting is off (Q43, Q46)', async () => {
+		const note = snapshot('Notes/Dune.md', '![[cover.png]] ![[map.png]]\n\nNotes on Dune.');
+		const images = [
+			{ embed: '![[cover.png]]', targets: ['cover.png'] },
+			{ embed: '![[map.png]]', targets: ['map.png', 'Attachments/map.png'] },
+		];
+		const { composed } = await derive(builtIn('key-points'), note, '**TL;DR:** A desert.\n\n![[Attachments/Map.png]]');
+		expect(composed.leadingImages.map((image) => image.target)).toEqual(['cover.png', 'map.png']);
+		const text = composed.assemble({ images });
+		expect(text.split('---\n')[2]).toBe('![[cover.png]]\n\n**TL;DR:** A desert.\n\n![[Attachments/Map.png]]\n');
+
+		const off = await derive({ ...builtIn('key-points'), carryImages: false }, note);
+		expect(off.composed.leadingImages).toEqual([]);
+		expect(off.composed.assemble({ images })).not.toContain('cover.png');
 	});
 
 	it('adds a created date with the run\'s date to every built-in (15.9)', async () => {
