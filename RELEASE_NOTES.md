@@ -1,5 +1,26 @@
 # Release notes
 
+## 0.2.0 (2026-10-22)
+
+New notes now carry over the source note's leading images and its properties. To update now, run **BRAT: Plugins: Check for updates to all beta plugins and UPDATE** from the command palette.
+
+### Leading images come along
+
+If the source note starts with an image, such as a cover, a banner or a photo under its title, the new note starts with it too. An image counts as leading when only headings, blank lines or other images come before it. The image stays where it is in your vault, and the new note embeds it with a link written for the new note's folder, so it still shows wherever the note is saved. A size like `|300` or a caption is kept, and an image the model already included isn't added twice.
+
+### Properties come along
+
+The source note's properties are copied into the new note. A template's own properties still come first, so a built-in's `created` date is always the day you ran it. Tags are merged as before, and `aliases` and `cssclasses` aren't copied, so the new note doesn't show up under the source's names or take on its styling. Change that list under **Properties not to copy**.
+
+### Your choice, per template
+
+Both are on by default, under **Carry over from the source** in the plugin's settings, and each template can turn either one on or off. The built-ins start with sensible choices: Action items doesn't carry images, Flashcards carries neither, and the Recipe card, Book reference and Movie reference examples carry their photo, cover or poster but keep their own properties. Built-ins you haven't edited update themselves. Re-import the examples to get their new settings.
+
+### Worth knowing
+
+- Your own templates carry images and properties too, unless you turn the settings off.
+- A copied property can make the new note match the same property trigger as its source. For example, a summary of a `type: book` note also gets `type: book`. Add `type` to **Properties not to copy** if you'd rather it didn't.
+
 ## 0.1.1 (2026-10-21)
 
 A small fix to how new notes are laid out. To update now, run **BRAT: Plugins: Check for updates to all beta plugins and UPDATE** from the command palette.

@@ -4,6 +4,8 @@ All notable changes to Inference Machine are recorded here. The format follows [
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-22
+
 ### Added
 
 - **Carry leading images:** the images at the front of the source note, such as a cover or banner, are put at the top of the new note, relinked so they still show from its folder. This is on by default, and a template can turn it off. Action items and Flashcards don't carry images.
@@ -35,6 +37,7 @@ The first release, installable with BRAT.
 - Support for reasoning models: `<think>` working is removed from responses, the output limit is only sent when set (Anthropic gets 8,192), and an answer cut short by reasoning is reported as such.
 - For LM Studio engines, the context length the model is loaded with is shown in the engine's settings and used for the long-note warning, and an engine can load the model with its own context window before each run.
 
-[Unreleased]: https://github.com/coreyx/obsidian-inference-machine/compare/0.1.1...HEAD
+[Unreleased]: https://github.com/coreyx/obsidian-inference-machine/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/coreyx/obsidian-inference-machine/compare/0.1.1...0.2.0
 [0.1.1]: https://github.com/coreyx/obsidian-inference-machine/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/coreyx/obsidian-inference-machine/releases/tag/0.1.0

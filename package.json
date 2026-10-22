@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-inference-machine",
-	"version": "0.1.1",
+	"version": "0.2.0",
 	"description": "Derive a new note from an existing one with an AI model, using reusable templates, engines and tagging rules.",
 	"main": "main.js",
 	"type": "module",
