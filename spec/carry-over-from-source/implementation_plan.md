@@ -146,7 +146,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
 
 #### [MODIFY] `test/core/*.test.ts`, `test/run/run-controller.test.ts`, `test/e2e/specs/derive.e2e.ts`
 - [x] **TASK-16:** Write unit tests in the project's Vitest suite, which enforces the coverage thresholds in `tasks.md` (see Verification Plan).
-- [ ] **TASK-17:** Add an end-to-end scenario to `derive.e2e.ts`.
+- [x] **TASK-17:** Add an end-to-end scenario to `derive.e2e.ts`.
   - Write a small PNG into the test vault's `Attachments/` folder.
   - Write a source note that has properties, starts with `![[cover.png|200]]`, and has a markdown image below the first paragraph.
   - Derive it into another folder, save it, and check the saved note: it starts with a working embed of `cover.png` with `|200` kept, has no copy of the second image, and has the copied properties without `aliases`.

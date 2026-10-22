@@ -209,6 +209,43 @@ describe('Inference Machine on desktop', function () {
 		await expect(popup().$('.cm-content')).toHaveText(expect.stringMatching(/tags:\n\s*- alpha\n\s*- beta/u));
 	});
 
+	it('carries the leading image, relinked, and the source\'s properties into a note in another folder', async function () {
+		await browser.executeObsidian(async ({ app }) => {
+			// A 1x1 PNG, so the embed points at a real image file.
+			const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='), (c) => c.charCodeAt(0));
+			await app.vault.createFolder('Attachments');
+			await app.vault.createBinary('Attachments/cover.png', png.buffer);
+			await app.vault.createFolder('Reading');
+			await app.vault.create(
+				'Reading/Dune.md',
+				'---\nauthor: Frank Herbert\nstatus: reading\naliases: [Dune notes]\n---\n# Dune\n\n![[cover.png|200]]\n\nNotes on the ecology of Arrakis.\n\n![[map.png]]\n',
+			);
+		});
+		await openNote('Reading/Dune.md');
+		await openPopup();
+		await locationSelect().selectByAttribute('value', 'folder');
+		await popup().$('input[placeholder="Folder"]').setValue('Summaries');
+		await popup().$('.modal-title').click();
+		await runToPreview();
+		await popupButton('Save').click();
+		const path = 'Summaries/Dune - Comprehensive summary.md';
+		await browser.waitUntil(async () => (await readFile(path)) !== null);
+		const saved = (await readFile(path))!;
+		const [, frontmatter, body] = saved.split('---\n');
+		expect(frontmatter).toContain('author: Frank Herbert');
+		expect(frontmatter).toContain('status: reading');
+		expect(frontmatter).not.toContain('aliases');
+		expect(body!.startsWith('![[cover.png|200]]\n\n## Summary\n\n')).toBe(true);
+		expect(saved).not.toContain('map.png');
+		// Obsidian itself resolves the carried embed to the image, from the new note's folder.
+		const embedded = await browser.executeObsidian(async ({ app }, p) => {
+			const file = app.vault.getFileByPath(p)!;
+			await new Promise((r) => window.setTimeout(r, 300));
+			return (app.metadataCache.getFileCache(file)?.embeds ?? []).map((e) => app.metadataCache.getFirstLinkpathDest(e.link, p)?.path ?? null);
+		}, path);
+		expect(embedded).toEqual(['Attachments/cover.png']);
+	});
+
 	it('lets a template override carrying images and frontmatter', async function () {
 		const result = await browser.executeObsidian(async ({ app }) => {
 			type Setting = { open(): void; close(): void; openTabById(id: string): void; activeTab?: { containerEl: HTMLElement }; win?: Window };
