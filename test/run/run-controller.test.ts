@@ -92,6 +92,20 @@ describe('a run with defaults', () => {
 		sourceUnchanged(fake);
 	});
 
+	it('carries the source\'s leading images, relinked for the output folder (Q43, Q45)', async () => {
+		const source = '# Alpha\n\n![](../Attachments/cover%20art.png) ![[gone.png]]\n![](https://example.com/b.jpg)\n\nWe ship the beta next week.\n';
+		const template: Template = { ...summary, location: { mode: 'folder', path: 'Summaries/2026' } };
+		const { fake, controller, run } = await setup({ notes: { 'Projects/Alpha.md': source, 'Attachments/cover art.png': 'png' }, templates: [template] });
+		fake.linkStyle = 'markdown';
+		const result = preview(await run());
+		expect(result.path).toBe('Summaries/2026/Alpha - Summary.md');
+		expect(result.text).toBe(
+			'![cover art.png](../../Attachments/cover%20art.png)\n![[gone.png]]\n![](https://example.com/b.jpg)\n\n## Summary\n\nShipping next week.\n\n# References\n\n- [Alpha](../../Projects/Alpha.md)\n',
+		);
+		const file = await controller.save(result);
+		expect(fake.files.get(file.path)?.content).toBe(result.text);
+	});
+
 	it('saves the edited preview text and opens the note (9.2, 10.0.7)', async () => {
 		const { run, controller, fake } = await setup();
 		const result = preview(await run());

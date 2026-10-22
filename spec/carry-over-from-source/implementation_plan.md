@@ -101,7 +101,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
   - `ComposedNote` also exposes `leadingImages: LeadingImage[]`, found from `note.body` when `config.carryImages` is on, so the run controller can resolve them.
 
 #### [MODIFY] `src/run/run-controller.ts`
-- [ ] **TASK-9:** Pass the images in.
+- [x] **TASK-9:** Pass the images in.
   - After the output path is planned, map `composed.leadingImages` through `imageEmbed(app, source, image, path)`.
   - Then call `composed.assemble({ link, images })`.
   - The preview and the saved note both get the result, so the preview still shows exactly what will be saved.

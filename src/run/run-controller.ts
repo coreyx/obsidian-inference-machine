@@ -16,7 +16,7 @@ import { outputLimitMessage, stripReasoning } from '../core/reasoning';
 import { checkFits } from '../core/tokens';
 import { NormalizedError, type Engine } from '../engines/engine';
 import type { LoadedModel } from '../engines/lmstudio';
-import { sourceLink } from '../obsidian/links';
+import { imageEmbed, sourceLink } from '../obsidian/links';
 import { readNote } from '../obsidian/note-reader';
 import { createNote, fileAt, notePath, openNote, outputFolder, planPath } from '../obsidian/note-writer';
 import type { SettingsStore } from '../obsidian/settings-store';
@@ -307,9 +307,11 @@ export class RunController {
 		this.check(token);
 		if (path === undefined) return { kind: 'cancelled' };
 		const link = config.references.enabled ? sourceLink(app, source, path) : undefined;
+		// Relinked for the planned path, so an image keeps working from the new note's folder (Q45).
+		const images = composed.leadingImages.map((image) => imageEmbed(app, source, image, path));
 		const dropped = droppedWarning(composed.dropped);
 		const preview: RunPreview = {
-			text: composed.assemble({ link }),
+			text: composed.assemble({ link, images }),
 			path,
 			warnings: [...warnings, ...(dropped ? [dropped] : []), ...notices],
 			config,
