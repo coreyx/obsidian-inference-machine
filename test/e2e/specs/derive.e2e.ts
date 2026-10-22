@@ -222,18 +222,43 @@ describe('Inference Machine on desktop', function () {
 			const names = [...tab.querySelectorAll('.setting-item-name')].map((e) => e.textContent ?? '');
 			const found: Record<string, boolean> = {};
 			const search = doc.querySelector<HTMLInputElement>('input[type="search"]');
-			for (const query of ['Detect LM Studio', 'Tag format']) {
+			for (const query of ['Detect LM Studio', 'Tag format', 'Properties not to copy']) {
 				if (!search) break;
 				search.value = query;
 				search.dispatchEvent(new Event('input', { bubbles: true }));
 				await wait(700);
 				found[query] = [...doc.querySelectorAll('.setting-item-name')].some((e) => e.textContent === query);
 			}
+			// The exclude list is typed as text and stored as a list.
+			const settingsTab = setting.activeTab as unknown as { getControlValue(key: string): unknown; setControlValue(key: string, value: unknown): Promise<void> };
+			const before = settingsTab.getControlValue('excludedProperties');
+			await settingsTab.setControlValue('excludedProperties', ' type, , aliases ');
+			const plugin = (app as unknown as { plugins: { plugins: Record<string, { store: { data: { globalSettings: { excludedProperties: string[] } } } }> } }).plugins.plugins[
+				'inference-machine'
+			]!;
+			const saved = [...plugin.store.data.globalSettings.excludedProperties];
+			await settingsTab.setControlValue('excludedProperties', before);
 			setting.close();
-			return { names, found };
+			return { names, found, before, saved };
 		});
-		expect(result.names).toEqual(expect.arrayContaining(['Engines', 'Mock (default)', 'Templates', 'Comprehensive summary', 'Output defaults', 'Tag defaults', 'Network use and privacy']));
-		expect(result.found).toEqual({ 'Detect LM Studio': true, 'Tag format': true });
+		expect(result.names).toEqual(
+			expect.arrayContaining([
+				'Engines',
+				'Mock (default)',
+				'Templates',
+				'Comprehensive summary',
+				'Output defaults',
+				'Carry over from the source',
+				'Carry leading images',
+				'Copy the source\'s frontmatter',
+				'Properties not to copy',
+				'Tag defaults',
+				'Network use and privacy',
+			]),
+		);
+		expect(result.found).toEqual({ 'Detect LM Studio': true, 'Tag format': true, 'Properties not to copy': true });
+		expect(result.before).toBe('aliases, cssclasses');
+		expect(result.saved).toEqual(['type', 'aliases']);
 	});
 
 	it('falls back to a non-streaming request when the server blocks CORS', async function () {

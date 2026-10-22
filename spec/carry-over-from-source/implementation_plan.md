@@ -122,7 +122,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
 ### Settings and template editor UI
 
 #### [MODIFY] `src/ui/settings-tab.ts`
-- [ ] **TASK-12:** Add a "Carry over from the source" group to the declarative settings, after "Output defaults", with three settings.
+- [x] **TASK-12:** Add a "Carry over from the source" group to the declarative settings, after "Output defaults", with three settings.
   - **Carry leading images:** a toggle on `carryImages`. Description: "Put the images at the front of the source note at the top of the new note. The images stay where they are; only the embeds are written."
   - **Copy the source's frontmatter:** a toggle on `carryProperties`. Description: "Copy the source note's properties into the new note. Tags are merged separately. A template's own properties take priority."
   - **Properties not to copy:** a text setting on `excludedProperties`, shown only when copying is on, written and read as a comma-separated list. Description: "Comma-separated property names." Clearing it saves an empty list, so every property is copied.

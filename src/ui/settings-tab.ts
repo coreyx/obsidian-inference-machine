@@ -87,6 +87,12 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 				return g.references.heading;
 			case 'openAfterCreate':
 				return g.openAfterCreate;
+			case 'carryImages':
+				return g.carryImages;
+			case 'carryProperties':
+				return g.carryProperties;
+			case 'excludedProperties':
+				return g.excludedProperties.join(', ');
 			case 'collision':
 				return g.collision;
 			case 'tagging.format':
@@ -138,6 +144,20 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 				case 'openAfterCreate':
 					g.openAfterCreate = value === true;
 					return;
+				case 'carryImages':
+					g.carryImages = value === true;
+					return;
+				case 'carryProperties':
+					g.carryProperties = value === true;
+					markStructural();
+					return;
+				case 'excludedProperties':
+					// An empty field is a deliberate "copy everything", so it's saved as an empty list.
+					g.excludedProperties = String(value)
+						.split(',')
+						.map((name) => name.trim())
+						.filter((name) => name !== '');
+					return;
 				case 'collision':
 					g.collision = value === 'ask' ? 'ask' : 'number';
 					return;
@@ -167,6 +187,7 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 			this.templateList(),
 			this.templateActions(),
 			this.outputDefaults(),
+			this.carryOverDefaults(),
 			this.tagDefaults(),
 			this.about(),
 		];
@@ -417,6 +438,32 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 					name: 'When the name is taken',
 					desc: 'A note is never overwritten.',
 					control: { type: 'dropdown', key: 'collision', options: { number: 'Add a number', ask: 'Ask' } },
+				},
+			],
+		};
+	}
+
+	/** What a derived note takes over from its source, for every template that doesn't say otherwise. */
+	private carryOverDefaults(): SettingDefinitionItem {
+		return {
+			type: 'group',
+			heading: 'Carry over from the source',
+			items: [
+				{
+					name: 'Carry leading images',
+					desc: 'Put the images at the front of the source note at the top of the new note. The images stay where they are; only the embeds are written.',
+					control: { type: 'toggle', key: 'carryImages' },
+				},
+				{
+					name: 'Copy the source\'s frontmatter',
+					desc: 'Copy the source note\'s properties into the new note. Tags are merged separately. A template\'s own properties take priority.',
+					control: { type: 'toggle', key: 'carryProperties' },
+				},
+				{
+					name: 'Properties not to copy',
+					desc: 'Comma-separated property names.',
+					visible: () => this.settings.carryProperties,
+					control: { type: 'text', key: 'excludedProperties', placeholder: 'aliases, cssclasses' },
 				},
 			],
 		};
