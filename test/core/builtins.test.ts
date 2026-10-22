@@ -107,6 +107,36 @@ describe('the built-in templates (REQ-15)', () => {
 		expect(off.frontmatter).toEqual({ created: '2026-10-17' });
 	});
 
+	it('turns carrying images and frontmatter off where it doesn\'t fit (Q51)', async () => {
+		const carry = (id: string) => {
+			const { template } = BUILT_INS.find((b) => b.builtInId === id)!;
+			return [template.carryImages, template.carryProperties];
+		};
+		expect(carry('comprehensive-summary')).toEqual([undefined, undefined]);
+		expect(carry('key-points')).toEqual([undefined, undefined]);
+		expect(carry('literature-note')).toEqual([undefined, undefined]);
+		expect(carry('action-items')).toEqual([false, undefined]);
+		expect(carry('flashcards')).toEqual([false, false]);
+
+		const note = snapshot('Bio.md', '![[cell.png]]\n\nCells.', { status: 'draft' });
+		const { frontmatter, composed } = await derive(builtIn('flashcards'), note, 'What is a cell?::The basic unit of life');
+		expect(frontmatter).toEqual({ tags: ['flashcards'], created: '2026-10-17' });
+		expect(composed.leadingImages).toEqual([]);
+	});
+
+	it('upgrades unedited Action items and Flashcards copies to the new defaults', () => {
+		const oldCopies = BUILT_INS.filter((b) => b.builtInId === 'action-items' || b.builtInId === 'flashcards').map((b) => {
+			const { carryImages: _images, carryProperties: _properties, ...older } = b.template;
+			return instantiateBuiltIn({ ...b, version: b.version - 1, template: older }, b.builtInId);
+		});
+		const { templates, upgraded } = upgradeBuiltIns(oldCopies, BUILT_INS);
+		expect(upgraded).toEqual(['Action items', 'Flashcards']);
+		expect(templates.map((t) => [t.carryImages, t.carryProperties])).toEqual([
+			[false, undefined],
+			[false, false],
+		]);
+	});
+
 	it('adds a created date with the run\'s date to every built-in (15.9)', async () => {
 		for (const b of BUILT_INS) {
 			const { frontmatter } = await derive(builtIn(b.builtInId));

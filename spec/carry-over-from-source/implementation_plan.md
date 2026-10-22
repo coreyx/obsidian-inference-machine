@@ -134,7 +134,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
 ### Built-in and example templates
 
 #### [MODIFY] `src/core/builtins/index.ts`
-- [ ] **TASK-14:** Set the Q51 defaults on the built-ins.
+- [x] **TASK-14:** Set the Q51 defaults on the built-ins.
   - Action items gets `carryImages: false`, version 2 to 3.
   - Flashcards gets `carryImages: false` and `carryProperties: false`, version 1 to 2.
   - The other three built-ins leave both unset, so they follow the global setting.

@@ -178,18 +178,28 @@ export const BUILT_INS: readonly BuiltInTemplate[] = [
 	},
 	{
 		builtInId: 'action-items',
-		version: 2,
-		template: { name: 'Action items', prompt: ACTION_ITEMS, properties: [CREATED], omitEmptyProperties: true },
+		version: 3,
+		template: {
+			name: 'Action items',
+			prompt: ACTION_ITEMS,
+			properties: [CREATED],
+			omitEmptyProperties: true,
+			// A meeting's date or attendees belong on its action items, but a banner above a task list doesn't (Q51).
+			carryImages: false,
+		},
 	},
 	{
 		builtInId: 'flashcards',
-		version: 1,
+		version: 2,
 		template: {
 			name: 'Flashcards',
 			prompt: FLASHCARDS,
 			// The Spaced Repetition plugin finds cards in notes tagged #flashcards (Q12).
 			properties: [{ name: 'tags', value: 'flashcards', type: 'multitext' }, CREATED],
 			omitEmptyProperties: true,
+			// A deck is a different kind of note: the source's status or type would describe the wrong thing (Q51).
+			carryImages: false,
+			carryProperties: false,
 		},
 	},
 	{
