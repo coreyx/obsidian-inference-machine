@@ -38,24 +38,29 @@ For the "Actionable insights" section, extract practical advice, workflows, impl
 
 ${FENCE}
 ## Summary
+
 [Write a comprehensive summary of the main topic and key message]
 
 ## Key points
+
 - [Key point 1]
 - [Key point 2]
 - [Additional key points...]
 
 ## Technical terms
+
 - **[[Term 1]]**: [Explanation of term 1]
 - **[[Term 2]]**: [Explanation of term 2]
 - [Additional terms as needed...]
 
 ## Actionable insights
+
 - [Actionable insight 1]
 - [Actionable insight 2]
 - [Additional insights...]
 
 ## Conclusion
+
 [Write a brief conclusion]
 ${FENCE}
 
@@ -71,6 +76,7 @@ ${FENCE}
 **TL;DR:** [One or two sentences with the note's main message]
 
 ## Key points
+
 - [Most important point]
 - [Next point]
 - [Additional points...]
@@ -88,12 +94,15 @@ const ACTION_ITEMS = `Pull the tasks, decisions and follow-ups out of the source
 
 ${FENCE}
 ## Action items
+
 - [ ] [Task or follow-up] (owner: [name]) (due: [date])
 
 ## Decisions
+
 - [Decision]
 
 ## Open questions
+
 - [Question the note leaves open]
 ${FENCE}
 
@@ -122,18 +131,22 @@ const LITERATURE_NOTE = `Write a literature note about the work the source note 
 
 ${FENCE}
 ## Source
+
 [What the work is, who made it and what it's about, in two or three sentences]
 
 ## Main arguments
+
 - [Argument or idea the work puts forward]
 - [Additional arguments...]
 
 ## Key quotes and evidence
+
 > [A quote, exactly as the note gives it]
 
 - [Evidence, data or examples the work uses]
 
 ## Takeaways
+
 - [The note-taker's own reactions, opinions and ideas, in their own voice]
 ${FENCE}
 
@@ -148,12 +161,12 @@ ${OUTPUT_RULES}`;
 export const BUILT_INS: readonly BuiltInTemplate[] = [
 	{
 		builtInId: 'comprehensive-summary',
-		version: 1,
+		version: 2,
 		template: { name: 'Comprehensive summary', prompt: COMPREHENSIVE_SUMMARY, properties: [CREATED], omitEmptyProperties: true },
 	},
 	{
 		builtInId: 'key-points',
-		version: 1,
+		version: 2,
 		template: {
 			name: 'Key points / TL;DR',
 			prompt: KEY_POINTS,
@@ -165,7 +178,7 @@ export const BUILT_INS: readonly BuiltInTemplate[] = [
 	},
 	{
 		builtInId: 'action-items',
-		version: 1,
+		version: 2,
 		template: { name: 'Action items', prompt: ACTION_ITEMS, properties: [CREATED], omitEmptyProperties: true },
 	},
 	{
@@ -181,7 +194,7 @@ export const BUILT_INS: readonly BuiltInTemplate[] = [
 	},
 	{
 		builtInId: 'literature-note',
-		version: 1,
+		version: 2,
 		template: {
 			name: 'Literature note',
 			prompt: LITERATURE_NOTE,

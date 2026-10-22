@@ -3,6 +3,7 @@ import YAML from 'yaml';
 import { numbered, sanitizeFilename } from '../../src/core/filename';
 import {
 	addReferenceLink,
+	blankLineAfterHeadings,
 	assembleNote,
 	coerceProperty,
 	prepareOutput,
@@ -99,8 +100,8 @@ describe('property typing', () => {
 
 describe('addReferenceLink (10.0.5, 10.0.6)', () => {
 	it('adds the heading at the end when the note lacks it (10.5)', () => {
-		expect(addReferenceLink('# Title\n\nText\n', '# References', '[[Alpha]]')).toBe('# Title\n\nText\n\n# References\n- [[Alpha]]\n');
-		expect(addReferenceLink('', '# References', '[[Alpha]]')).toBe('# References\n- [[Alpha]]\n');
+		expect(addReferenceLink('# Title\n\nText\n', '# References', '[[Alpha]]')).toBe('# Title\n\nText\n\n# References\n\n- [[Alpha]]\n');
+		expect(addReferenceLink('', '# References', '[[Alpha]]')).toBe('# References\n\n- [[Alpha]]\n');
 	});
 
 	it('uses an existing heading instead of adding a second one (10.6)', () => {
@@ -116,13 +117,13 @@ describe('addReferenceLink (10.0.5, 10.0.6)', () => {
 	});
 
 	it('uses a custom heading such as ## Sources (10.7)', () => {
-		expect(addReferenceLink('Text', '## Sources', '[[Alpha]]')).toBe('Text\n\n## Sources\n- [[Alpha]]\n');
+		expect(addReferenceLink('Text', '## Sources', '[[Alpha]]')).toBe('Text\n\n## Sources\n\n- [[Alpha]]\n');
 		expect(addReferenceLink('## Sources\n- a\n### Sub\n- b\n## Next', '## Sources', 'L')).toBe('## Sources\n- a\n### Sub\n- b\n- L\n## Next');
 	});
 
 	it('ignores a heading inside a code block', () => {
 		const body = '```md\n# References\n```\nText';
-		expect(addReferenceLink(body, '# References', '[[Alpha]]')).toBe(`${body}\n\n# References\n- [[Alpha]]\n`);
+		expect(addReferenceLink(body, '# References', '[[Alpha]]')).toBe(`${body}\n\n# References\n\n- [[Alpha]]\n`);
 	});
 
 	it('treats a heading setting without # as a plain line ended by any heading', () => {
@@ -130,14 +131,37 @@ describe('addReferenceLink (10.0.5, 10.0.6)', () => {
 	});
 });
 
+describe('blankLineAfterHeadings', () => {
+	it('puts a blank line after every heading that lacks one', () => {
+		expect(blankLineAfterHeadings('## Summary\nText\n## Key points\n- A\n### Sub\n- B')).toBe('## Summary\n\nText\n## Key points\n\n- A\n### Sub\n\n- B');
+		expect(blankLineAfterHeadings('# Title\n## Section\nText')).toBe('# Title\n\n## Section\n\nText');
+	});
+
+	it('leaves headings that already have one, and a heading at the end, alone', () => {
+		const text = '## Summary\n\nText\n\n## End';
+		expect(blankLineAfterHeadings(text)).toBe(text);
+		expect(blankLineAfterHeadings('## Summary\n   \nText')).toBe('## Summary\n   \nText');
+	});
+
+	it('ignores headings in code blocks, tags and other lines that only start with #', () => {
+		const text = '```md\n# Inside\ntext\n```\n#tag on a line\n    # indented code\ntext\n#hashtag';
+		expect(blankLineAfterHeadings(text)).toBe(text);
+	});
+});
+
 describe('assembleNote', () => {
+	it('puts a blank line after every heading in the note, its own and the references heading', () => {
+		const text = assemble({ body: '## Summary\nText\n# References\n- [[Other]]', references: { heading: '# References', link: '[[Alpha]]' } });
+		expect(text).toBe('## Summary\n\nText\n# References\n\n- [[Other]]\n- [[Alpha]]\n');
+	});
+
 	it('writes frontmatter with the final tags and the body (9.1)', () => {
 		const text = assemble({
 			properties: [{ name: 'status', value: 'draft' }],
 			tags: ['Project', 'x'],
 			references: { heading: '# References', link: '[[Alpha]]' },
 		});
-		expect(text).toBe('---\nstatus: draft\ntags:\n  - Project\n  - x\n---\nBody\n\n# References\n- [[Alpha]]\n');
+		expect(text).toBe('---\nstatus: draft\ntags:\n  - Project\n  - x\n---\nBody\n\n# References\n\n- [[Alpha]]\n');
 	});
 
 	it('merges AI frontmatter under template properties (8.7)', () => {

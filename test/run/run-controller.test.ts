@@ -83,7 +83,7 @@ describe('a run with defaults', () => {
 		const { run, fake, engine } = await setup();
 		const result = preview(await run());
 		expect(result.path).toBe('Projects/Alpha - Summary.md');
-		expect(result.text).toBe('---\ntags:\n  - Project\n  - launch\n---\n## Summary\nShipping next week.\n\n# References\n- [[Alpha]]\n');
+		expect(result.text).toBe('---\ntags:\n  - Project\n  - launch\n---\n## Summary\n\nShipping next week.\n\n# References\n\n- [[Alpha]]\n');
 		expect(result.warnings).toEqual([]);
 		expect(fake.writes).toEqual([]);
 		expect(engine.received.map((r) => r.mode)).toEqual(['stream']);
@@ -228,7 +228,7 @@ describe('reasoning models (8.0.8, 8.0.9)', () => {
 	it('keeps reasoning out of the note, streamed or not (8.8)', async () => {
 		const { run } = await setup({ responder: replies({ main: '<think>Let me plan this.\nFirst the summary.</think>\n## Summary\nShipping next week.' }) });
 		const text = preview(await run()).text;
-		expect(text).toContain('## Summary\nShipping next week.');
+		expect(text).toContain('## Summary\n\nShipping next week.');
 		expect(text).not.toMatch(/think|plan this/iu);
 	});
 

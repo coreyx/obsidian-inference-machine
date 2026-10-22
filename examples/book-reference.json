@@ -42,7 +42,7 @@
 					"type": "multitext"
 				}
 			],
-			"noteContentFormat": "## Summary\n{{\"two or three sentences on what the note says about the book. Use only what the note says, and add nothing it doesn't\"}}\n\n## Notes\n{{\"the note's own thoughts, quotes and reactions about the book, as a bullet list. Leave empty if there are none\"}}",
+			"noteContentFormat": "## Summary\n\n{{\"two or three sentences on what the note says about the book. Use only what the note says, and add nothing it doesn't\"}}\n\n## Notes\n\n{{\"the note's own thoughts, quotes and reactions about the book, as a bullet list. Leave empty if there are none\"}}",
 			"omitEmptyProperties": true
 		}
 	]

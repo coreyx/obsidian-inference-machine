@@ -128,6 +128,10 @@ describe('the example templates (20.5)', () => {
 			expect(template.omitEmptyProperties).toBe(true);
 			const text = JSON.stringify(template);
 			expect(text).toMatch(/leave empty/iu);
+			const lines = template.noteContentFormat!.split('\n');
+			lines.forEach((line, i) => {
+				if (line.startsWith('#')) expect(lines[i + 1], `${name}: ${line}`).toBe('');
+			});
 		}
 	});
 
@@ -142,7 +146,7 @@ describe('the example templates (20.5)', () => {
 		});
 		expect(engine.received).toHaveLength(1);
 		expect(frontmatter).toEqual({ servings: 4, categories: ['[[Recipes]]'], created: '2026-10-17', tags: ['recipes'] });
-		expect(body).toContain('## Ingredients\n- [ ] 2 eggs');
+		expect(body).toContain('## Ingredients\n\n- [ ] 2 eggs');
 		expect(body).toContain('1. Mix.');
 	});
 

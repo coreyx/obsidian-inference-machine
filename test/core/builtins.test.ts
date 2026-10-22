@@ -49,6 +49,20 @@ describe('the built-in templates (REQ-15)', () => {
 		expect(prompt).not.toMatch(/transcription|subtitle/iu);
 	});
 
+	it('shows a blank line after every heading in each prompt, its example output included', () => {
+		for (const b of BUILT_INS) {
+			const lines = b.template.prompt!.split('\n');
+			lines.forEach((line, i) => {
+				if (/^#{1,6} /u.test(line)) expect(lines[i + 1], `${b.builtInId}: ${line}`).toBe('');
+			});
+		}
+	});
+
+	it('writes a blank line after each heading of a response that has none', async () => {
+		const { text } = await derive(builtIn('action-items'), undefined, '## Action items\n- [ ] Ship it\n## Decisions\n- Ship Friday');
+		expect(text).toContain('## Action items\n\n- [ ] Ship it\n## Decisions\n\n- Ship Friday');
+	});
+
 	it('adds a created date with the run\'s date to every built-in (15.9)', async () => {
 		for (const b of BUILT_INS) {
 			const { frontmatter } = await derive(builtIn(b.builtInId));
@@ -61,7 +75,7 @@ describe('the built-in templates (REQ-15)', () => {
 		const { text } = await derive(builtIn('comprehensive-summary'), undefined, response);
 		for (const section of ['## Summary', '## Key points', '## Actionable insights', '## Conclusion']) expect(text).toContain(section);
 		expect(text).not.toContain('```');
-		expect(text.trimEnd().endsWith('# References\n- [[Plain]]')).toBe(true);
+		expect(text.trimEnd().endsWith('# References\n\n- [[Plain]]')).toBe(true);
 	});
 
 	it('writes flashcards as Question::Answer lines with the flashcards tag (15.6)', async () => {

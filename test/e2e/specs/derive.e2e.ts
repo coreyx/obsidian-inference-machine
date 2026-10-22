@@ -107,9 +107,9 @@ describe('Inference Machine on desktop', function () {
 		await popupButton('Save').click();
 		await popup().waitForExist({ reverse: true });
 		const saved = (await readFile(summaryPath))!;
-		expect(saved).toContain('## Summary\nThe team plans to ship the beta next week.');
+		expect(saved).toContain('## Summary\n\nThe team plans to ship the beta next week.\n\n## Key points\n\n- The beta ships next week.');
 		expect(saved).toContain('tags:\n  - reading\n  - ai/llm\n  - inline-tag');
-		expect(saved).toContain('# References\n- [[Alpha]]');
+		expect(saved).toContain('# References\n\n- [[Alpha]]');
 		expect(saved).toContain('Added in the preview.');
 		// 10.0.7: the new note opens.
 		expect(await activePath()).toBe(summaryPath);

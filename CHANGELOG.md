@@ -4,6 +4,10 @@ All notable changes to Inference Machine are recorded here. The format follows [
 
 ## [Unreleased]
 
+### Fixed
+
+- Every heading in a new note is now followed by a blank line, whichever template or model wrote it, the `# References` heading included. The example outputs in the built-in templates' prompts and the example templates now show the blank line too. Unedited built-in templates update themselves; an imported example template needs importing again to get the new layout.
+
 ## [0.1.0] - 2026-10-19
 
 The first release, installable with BRAT.

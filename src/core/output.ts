@@ -225,11 +225,38 @@ export function addReferenceLink(body: string, heading: string, link: string): s
 	}
 
 	const item = `- ${link}`;
-	if (start === -1) return `${body.trimEnd()}${body.trim() === '' ? '' : '\n\n'}${wanted}\n${item}\n`;
+	if (start === -1) {
+		const gap = headingLevel(wanted) === undefined ? '\n' : '\n\n';
+		return `${body.trimEnd()}${body.trim() === '' ? '' : '\n\n'}${wanted}${gap}${item}\n`;
+	}
 	let insertAt = end;
 	while (insertAt > start + 1 && lines[insertAt - 1]!.trim() === '') insertAt--;
 	lines.splice(insertAt, 0, item);
 	return lines.join('\n');
+}
+
+/**
+ * Puts a blank line after every ATX heading outside code blocks, so every
+ * note reads the same whichever template or model wrote it. Models often
+ * follow a heading directly with text even when the prompt's example has a
+ * blank line, and a template's body format may not have one either.
+ */
+export function blankLineAfterHeadings(text: string): string {
+	const lines = text.split('\n');
+	const out: string[] = [];
+	let inFence = false;
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i]!;
+		out.push(line);
+		if (isFenceLine(line)) {
+			inFence = !inFence;
+			continue;
+		}
+		if (inFence || headingLevel(line) === undefined) continue;
+		const next = lines[i + 1];
+		if (next !== undefined && next.trim() !== '') out.push('');
+	}
+	return out.join('\n');
 }
 
 /** Everything the final note is built from. */
@@ -263,6 +290,7 @@ export function assembleNote(input: AssembleInput): string {
 
 	let body = input.body;
 	if (input.references) body = addReferenceLink(body, input.references.heading, input.references.link);
+	body = blankLineAfterHeadings(body);
 	if (!body.endsWith('\n')) body += '\n';
 
 	if (Object.keys(frontmatter).length === 0) return body;
