@@ -71,7 +71,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
 ### Leading images
 
 #### [NEW] `src/core/leading-images.ts`
-- [ ] **TASK-5:** Add `findLeadingImages(body: string): LeadingImage[]`, which finds the images at the front of a note body (the body without frontmatter).
+- [x] **TASK-5:** Add `findLeadingImages(body: string): LeadingImage[]`, which finds the images at the front of a note body (the body without frontmatter).
   - It reads lines from the top:
     - Blank lines and ATX headings are skipped.
     - A line made only of image embeds, separated by whitespace, adds each embed in order.
@@ -81,7 +81,7 @@ None at this time. The decisions behind this plan are Q40 to Q51:
     - `![alt](target)`, where the target is an `http://` or `https://` URL, or a vault path with one of those extensions. The target may be in angle brackets, and URL-encoded paths like `my%20photo.png` are decoded.
   - Not images: `![[Note]]` and `![](Note.md)` are note embeds. HTML `<img>` tags aren't read (Q42).
   - Each `LeadingImage` has `raw` (the text as written), `form` (`'wiki'` or `'markdown'`), `target` (the decoded path or URL, without any `#subpath`), `display` (the size or caption after `|`, or the alt text) and `external` (true for URLs).
-- [ ] **TASK-6:** Add `alreadyEmbedded(body: string, targets: string[]): boolean`, which reports whether the body already embeds any of the given targets.
+- [x] **TASK-6:** Add `alreadyEmbedded(body: string, targets: string[]): boolean`, which reports whether the body already embeds any of the given targets.
   - It's used to skip an image the model's output already includes (Q46).
   - Targets match case-insensitively, by path or by filename alone, ignoring size, caption and `#subpath`, and only outside code blocks.
 
