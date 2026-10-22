@@ -119,6 +119,7 @@ describe('checkTemplate', () => {
 				id: 't',
 				name: 'Bad',
 				skipPreview: 'no',
+				carryImages: 'yes',
 				properties: [{ name: 'x', value: 1, type: 'text' }, { name: 'ok', value: 'v', type: 'text' }],
 				references: { heading: 3 },
 			},
@@ -127,6 +128,7 @@ describe('checkTemplate', () => {
 		expect(result.value).toEqual({ id: 't', name: 'Bad', properties: [{ name: 'ok', value: 'v', type: 'text' }] });
 		expect(result.problems).toEqual([
 			'Template "Bad": "skipPreview" must be true or false',
+			'Template "Bad": "carryImages" must be true or false',
 			'Template "Bad": a property needs a name, a text value and a known type',
 			'Template "Bad": references settings aren\'t valid',
 		]);

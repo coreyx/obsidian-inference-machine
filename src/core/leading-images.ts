@@ -155,7 +155,7 @@ export function findLeadingImages(body: string): LeadingImage[] {
 /** The part of a target that identifies it: a URL whole, a vault path by its lowercased filename. */
 function identity(target: string): string {
 	if (EXTERNAL.test(target)) return target;
-	return (target.split('/').pop() ?? target).toLowerCase();
+	return target.slice(target.lastIndexOf('/') + 1).toLowerCase();
 }
 
 /**

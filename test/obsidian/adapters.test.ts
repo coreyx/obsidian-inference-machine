@@ -172,6 +172,10 @@ describe('links and secrets', () => {
 			targets: ['https://example.com/c.jpg'],
 		});
 		expect(imageEmbed(fake.app, source, missing!, 'Summaries/Dune - Summary.md')).toEqual({ embed: '![[gone.png]]', targets: ['gone.png'] });
+
+		// Should Obsidian ever return the embed form itself, it isn't marked twice.
+		fake.app.fileManager.generateMarkdownLink = () => '![[my cover.png|200]]';
+		expect(imageEmbed(fake.app, source, wiki!, 'Summaries/Dune - Summary.md').embed).toBe('![[my cover.png|200]]');
 	});
 
 	it('reads and writes SecretStorage, and makes valid ids', () => {
