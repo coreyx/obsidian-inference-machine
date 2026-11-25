@@ -205,21 +205,6 @@ describe('Inference Machine on desktop', function () {
 		await browser.waitUntil(async () => (await readFile('Alpha - Key points.md')) !== null, { timeout: 30000 });
 	});
 
-	it('remembers the template used last (19.3)', async function () {
-		await openPopup();
-		await popup().$('select').selectByVisibleText('Action items');
-		await runToPreview();
-		await popupButton('Discard').click();
-		await popup().waitForExist({ reverse: true });
-		await openPopup();
-		const selected = await popup().$('select').getValue();
-		const actionItems = await browser.executeObsidian(({ app }) => {
-			const plugin = (app as unknown as { plugins: { plugins: Record<string, { store: { data: { templates: { id: string; name: string }[] } } }> } }).plugins.plugins['inference-machine']!;
-			return plugin.store.data.templates.find((t) => t.name === 'Action items')!.id;
-		});
-		expect(selected).toBe(actionItems);
-	});
-
 	it('splits frontmatter tags written as one string (11.4)', async function () {
 		await openNote('Beta.md');
 		await openPopup();

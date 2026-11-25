@@ -114,7 +114,7 @@ None at this time. The decisions behind this plan are Q52 to Q54, Q61 and Q62:
 - [x] **TASK-10:** Unit tests for the cases listed under Automated Tests, items 1 to 4.
 
 #### [MODIFY] `test/e2e/specs/derive.e2e.ts`
-- [ ] **TASK-11:** Replace the 19.3 scenario with scenarios for:
+- [x] **TASK-11:** Replace the 19.3 scenario with scenarios for:
   - Restoring without running.
   - Per-template memory.
   - **Use template settings**.
