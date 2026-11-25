@@ -133,10 +133,10 @@ describe('a run with defaults', () => {
 		expect(deltas.join('')).toBe('x'.repeat(50));
 	});
 
-	it('remembers the template used last (19.3)', async () => {
+	it('remembers the template used last, and no location (19.3, Q53)', async () => {
 		const { run, store } = await setup();
 		await run('summary', {}, { location: { mode: 'folder', path: 'Out' } });
-		expect(store.data.ui).toEqual({ lastTemplateId: 'summary', lastLocation: { mode: 'folder', path: 'Out' } });
+		expect(store.data.ui).toEqual({ lastTemplateId: 'summary' });
 	});
 });
 

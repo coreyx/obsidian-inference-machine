@@ -321,10 +321,9 @@ export class RunController {
 			...(link !== undefined ? { link } : {}),
 		};
 
-		await store.update((d) => {
-			d.ui.lastTemplateId = template.id;
-			if (input.popup.location) d.ui.lastLocation = input.popup.location;
-		});
+		// Running a template picked by a command or trigger makes it the last one used.
+		// The engine and location are saved by the popup as they change (Q52).
+		await store.update((d) => (d.ui.lastTemplateId = template.id));
 		if (config.skipPreview) {
 			const file = await this.save(preview);
 			return { kind: 'saved', preview, file };

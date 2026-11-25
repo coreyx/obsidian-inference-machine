@@ -70,7 +70,7 @@ None at this time. The decisions behind this plan are Q52 to Q54, Q61 and Q62:
 ### Run controller
 
 #### [MODIFY] `src/run/run-controller.ts`
-- [ ] **TASK-5:** Remember only the template at run time.
+- [x] **TASK-5:** Remember only the template at run time.
   - On a successful run, keep setting `ui.lastTemplateId`. Running a template picked by a command or trigger still makes it the last one used.
   - Stop writing `ui.lastLocation`. The popup now saves the engine and location as they change (TASK-8).
 
