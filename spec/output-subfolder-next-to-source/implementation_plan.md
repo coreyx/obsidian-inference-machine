@@ -62,7 +62,7 @@ None at this time. The decisions behind this plan are Q58 and Q59:
   - If the typed path leads out of the source note's folder, the control's description shows the error from `subfolderSegments` and the value isn't saved.
 
 #### [MODIFY] `src/ui/template-editor.ts`
-- [ ] **TASK-6:** Add the same option to the template's **Location** dropdown.
+- [x] **TASK-6:** Add the same option to the template's **Location** dropdown.
   - When it's chosen, a plain text field is shown with the same placeholder.
   - The **Inherit (…)** label describes an inherited folder of this kind as `next to the source, in <path>`, or `next to the source` when the path is empty.
   - If the path leads out of the source note's folder, an error is shown under the field and the template can't be saved, as for the editor's other invalid fields.

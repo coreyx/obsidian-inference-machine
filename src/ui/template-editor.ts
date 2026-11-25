@@ -2,9 +2,11 @@ import { Modal, Setting, type App } from 'obsidian';
 import { DEFAULTS } from '../core/defaults';
 import { collectTemplatePrompts } from '../core/inline';
 import { resolveRunConfig, type RunConfig } from '../core/resolve';
-import { PROPERTY_TYPES, type PropertyType, type TagFormat, type TaggingSettings, type Template } from '../core/schema';
+import { PROPERTY_TYPES, type OutputLocation, type PropertyType, type TagFormat, type TaggingSettings, type Template } from '../core/schema';
+import { subfolderSegments } from '../core/location';
 import { parseTriggers } from '../core/triggers';
 import type { SettingsStore } from '../obsidian/settings-store';
+import { addSubfolderField, SUBFOLDER_LABEL } from './subfolder-field';
 import { FolderSuggest } from './suggesters';
 import { createTemplateField, type TemplateFieldEditor, type TemplateFieldOptions } from './template-field';
 
@@ -33,6 +35,13 @@ const FORMAT_LABELS: Record<Exclude<TagFormat, { custom: string }>, string> = {
 /** How a tag format reads in a dropdown. */
 export function formatLabel(format: TagFormat): string {
 	return typeof format === 'object' ? 'Custom' : FORMAT_LABELS[format];
+}
+
+/** How an inherited output location reads in the "Inherit (…)" option. */
+function describeLocation(location: OutputLocation): string {
+	if (location.mode === 'folder') return location.path || 'vault root';
+	if (location.mode === 'subfolder' && location.path.trim() !== '') return `next to the source, in ${location.path.trim()}`;
+	return 'next to the source';
 }
 
 /**
@@ -231,11 +240,15 @@ export class TemplateEditorModal extends Modal {
 
 		const location = new Setting(el).setName('Location');
 		location.addDropdown((d) => {
-			const inheritedText = inherited.location.mode === 'folder' ? inherited.location.path || 'vault root' : 'next to the source';
-			d.addOption('inherit', `Inherit (${inheritedText})`).addOption('alongside', 'Next to the source note').addOption('folder', 'In a folder');
+			d.addOption('inherit', `Inherit (${describeLocation(inherited.location)})`)
+				.addOption('alongside', 'Next to the source note')
+				.addOption('subfolder', SUBFOLDER_LABEL)
+				.addOption('folder', 'In a folder');
 			d.setValue(draft.location?.mode ?? 'inherit').onChange((mode) => {
+				// Switching between the two folder choices keeps the path already typed.
+				const path = draft.location && draft.location.mode !== 'alongside' ? draft.location.path : '';
 				if (mode === 'inherit') delete draft.location;
-				else draft.location = mode === 'folder' ? { mode: 'folder', path: '' } : { mode: 'alongside' };
+				else draft.location = mode === 'folder' || mode === 'subfolder' ? { mode, path } : { mode: 'alongside' };
 				this.render();
 			});
 		});
@@ -246,6 +259,15 @@ export class TemplateEditorModal extends Modal {
 				const set = (path: string) => (current.path = path);
 				t.onChange(set);
 				new FolderSuggest(this.app, t.inputEl, set);
+			});
+		}
+		if (draft.location?.mode === 'subfolder') {
+			const current = draft.location;
+			addSubfolderField(location, {
+				value: current.path,
+				describe: (segments) => (segments.length === 0 ? 'Empty: next to the source note.' : `In ${segments.join('/')}/ inside the source note's folder.`),
+				// The typed path is kept even when it's refused, so saving can name the problem.
+				onChange: (path) => (current.path = path),
 			});
 		}
 
@@ -351,6 +373,15 @@ export class TemplateEditorModal extends Modal {
 		if (draft.properties.length === 0) delete draft.properties;
 		if (draft.references && Object.keys(draft.references).length === 0) delete draft.references;
 		if (draft.tagging && Object.keys(draft.tagging).length === 0) delete draft.tagging;
+		if (draft.location?.mode === 'subfolder') {
+			const check = subfolderSegments(draft.location.path);
+			if ('error' in check) {
+				this.error = check.error;
+				this.render();
+				return;
+			}
+			draft.location.path = draft.location.path.trim();
+		}
 
 		// 5.0.2: a template needs a main prompt, at least one inline prompt, or both.
 		const config = this.inherited();
