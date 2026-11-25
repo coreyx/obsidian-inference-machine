@@ -95,7 +95,10 @@ Every setting below is optional. A template that leaves one unset uses the defau
 
 - **Main prompt:** what the model is asked to write. If it doesn't use `{{content}}` or `{{body}}`, the note's filename and full contents are added after it.
 - **Filename**, **body** (with `{{output}}` where the main output goes) and **properties** (frontmatter for the new note, each with a type).
-- **Location:** a folder, or next to the source note. Missing folders are created. A taken name gets a number (`Alpha - Summary 1`); nothing is ever overwritten.
+- **Location:** one of three places. Missing folders are created. A taken name gets a number (`Alpha - Summary 1`); nothing is ever overwritten.
+  - **Next to the source note:** in the source note's own folder.
+  - **Next to the source note, in a specified folder:** in a folder inside the source note's folder. With `AI/Summaries`, a note from `Reading/` is saved in `Reading/AI/Summaries/`. An empty folder means next to the source note, and a folder can't lead out of the source's folder with `..`.
+  - **In a folder:** in one fixed folder of the vault.
 - **Engine**, **skip preview**, **open the new note**, and a **link back to the source** under a heading (`# References` by default). The link follows your vault's link settings.
 - **Tag settings**, including preferred tags for AI tagging.
 - **Carry leading images** and **copy the source's frontmatter** (see below).

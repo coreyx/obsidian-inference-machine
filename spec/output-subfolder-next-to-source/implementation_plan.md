@@ -80,7 +80,7 @@ None at this time. The decisions behind this plan are Q58 and Q59:
 ### Documentation
 
 #### [MODIFY] `README.md`
-- [ ] **TASK-8:** In **What a template sets**, describe the three output locations, with the `Reading/` + `AI/Summaries` → `Reading/AI/Summaries/` example. Say that an empty folder means next to the source note and that `..` isn't allowed.
+- [x] **TASK-8:** In **What a template sets**, describe the three output locations, with the `Reading/` + `AI/Summaries` → `Reading/AI/Summaries/` example. Say that an empty folder means next to the source note and that `..` isn't allowed.
 
 ### Tests
 
