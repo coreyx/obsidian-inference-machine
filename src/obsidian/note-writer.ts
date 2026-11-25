@@ -1,5 +1,6 @@
 import { normalizePath, TFile, TFolder, type App } from 'obsidian';
 import { numbered, sanitizeFilename } from '../core/filename';
+import { subfolderSegments } from '../core/location';
 import type { NoteSnapshot } from '../core/note';
 import type { OutputLocation } from '../core/schema';
 
@@ -9,9 +10,21 @@ import type { OutputLocation } from '../core/schema';
  * can't touch the source note (2.0.4, 10.0.4).
  */
 
-/** The folder the output goes in: the chosen folder, or the source note's own folder (10.0.1). */
+/**
+ * The folder the output goes in (10.0.1): the chosen folder, the source note's
+ * own folder, or a folder inside the source note's folder (Q58). Throws when a
+ * `subfolder` path leads out of the source's folder, which only a value typed
+ * into the popup can do, since loading drops such paths.
+ */
 export function outputFolder(location: OutputLocation, source: NoteSnapshot): string {
-	const folder = location.mode === 'alongside' ? source.folder : location.path;
+	let folder: string;
+	if (location.mode === 'alongside') folder = source.folder;
+	else if (location.mode === 'folder') folder = location.path;
+	else {
+		const check = subfolderSegments(location.path);
+		if ('error' in check) throw new Error(check.error);
+		folder = [source.folder, ...check.segments].filter((part) => part !== '').join('/');
+	}
 	const normalized = normalizePath(folder.trim());
 	return normalized === '/' ? '' : normalized;
 }

@@ -149,6 +149,21 @@ describe('output settings', () => {
 		expect(fake.writes.map((w) => w.path)).toEqual(['Summaries', 'Summaries/2026', 'Summaries/2026/Alpha - Summary.md']);
 	});
 
+	it('creates a folder inside the source note\'s folder (Q58)', async () => {
+		const { run, controller, fake } = await setup();
+		const result = preview(await run('summary', {}, { location: { mode: 'subfolder', path: 'AI/Summaries' } }));
+		expect(result.path).toBe('Projects/AI/Summaries/Alpha - Summary.md');
+		await controller.save(result);
+		expect(fake.writes.map((w) => w.path)).toEqual(['Projects/AI', 'Projects/AI/Summaries', 'Projects/AI/Summaries/Alpha - Summary.md']);
+	});
+
+	it('fails a folder that leads out of the source\'s folder before sending anything (Q58)', async () => {
+		const { run, engine } = await setup();
+		const outcome = await run('summary', {}, { location: { mode: 'subfolder', path: '../Elsewhere' } });
+		expect(outcome).toMatchObject({ kind: 'failed', error: { message: 'The folder "../Elsewhere" leads out of the source note\'s folder.' } });
+		expect(engine.received).toEqual([]);
+	});
+
 	it('saves without a preview when the template says so (9.4)', async () => {
 		const { run, fake } = await setup({ templates: [{ ...summary, skipPreview: true }] });
 		const outcome = await run();

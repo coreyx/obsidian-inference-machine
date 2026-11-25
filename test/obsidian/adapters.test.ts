@@ -115,6 +115,16 @@ describe('note writer', () => {
 		expect(notePath('', 'Alpha')).toBe('Alpha.md');
 	});
 
+	it('puts the note in a folder inside the source note\'s folder (Q58, Q59)', () => {
+		expect(outputFolder({ mode: 'subfolder', path: 'AI/Summaries' }, source)).toBe('Projects/AI/Summaries');
+		expect(outputFolder({ mode: 'subfolder', path: ' /AI\\Summaries/ ' }, source)).toBe('Projects/AI/Summaries');
+		const atRoot = { folder: '' } as typeof source;
+		expect(outputFolder({ mode: 'subfolder', path: 'AI/Summaries' }, atRoot)).toBe('AI/Summaries');
+		expect(outputFolder({ mode: 'subfolder', path: '' }, source)).toBe('Projects');
+		expect(outputFolder({ mode: 'subfolder', path: '' }, atRoot)).toBe('');
+		expect(() => outputFolder({ mode: 'subfolder', path: '../x' }, source)).toThrow('leads out of the source note\'s folder');
+	});
+
 	it('numbers a taken name until it is free (10.4)', async () => {
 		const fake = new FakeApp({ 'Projects/Alpha - Summary.md': 'x', 'Projects/Alpha - Summary 1.md': 'x' });
 		expect(await planPath(fake.app, 'Projects', 'Alpha - Summary')).toBe('Projects/Alpha - Summary 2.md');

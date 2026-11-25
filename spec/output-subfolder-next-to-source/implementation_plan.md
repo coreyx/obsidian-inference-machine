@@ -44,7 +44,7 @@ None at this time. The decisions behind this plan are Q58 and Q59:
   - Templates, global settings, imports and the remembered popup location all load through `checkLocation`, so they all accept the new type.
 
 #### [MODIFY] `src/obsidian/note-writer.ts`
-- [ ] **TASK-4:** Extend `outputFolder` for `subfolder`.
+- [x] **TASK-4:** Extend `outputFolder` for `subfolder`.
   - It joins the source note's folder with the segments from `subfolderSegments`, then normalizes the result as it does today.
   - A source note at the vault root gives just the segments.
   - No segments gives the source note's folder.

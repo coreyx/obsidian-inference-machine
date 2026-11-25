@@ -185,6 +185,8 @@ export class RunController {
 		});
 		const engineConfig = config.engine;
 		if (!engineConfig) throw new Error('No engine is configured. Add one in Inference Machine\'s settings.');
+		// Checked before anything is sent, so a folder that leads out of the source's folder costs no request.
+		outputFolder(config.location, note);
 		const notices = new Set(resolveNotices);
 		const addNotices = (list: string[]) => list.forEach((n) => notices.add(n));
 
