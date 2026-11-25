@@ -1,4 +1,4 @@
-import { Notice, Platform, PluginSettingTab, type App, type Plugin, type SettingDefinitionItem, type SettingGroupItem } from 'obsidian';
+import { Notice, Platform, PluginSettingTab, type App, type Plugin, type Setting, type SettingDefinitionItem, type SettingGroupItem } from 'obsidian';
 import { DEFAULTS } from '../core/defaults';
 import type { EngineConfig, GlobalSettings, TagFormat } from '../core/schema';
 import { duplicateTemplate, restoreBuiltIns } from '../core/templates';
@@ -10,6 +10,7 @@ import type { LmStudioControl } from '../run/run-controller';
 import { confirmAction } from './confirm-modals';
 import { runLmStudioDetection } from './detect-flow';
 import { EngineModal, PROVIDER_LABELS } from './engine-modal';
+import { addSubfolderField, SUBFOLDER_LABEL } from './subfolder-field';
 import { formatLabel, TemplateEditorModal } from './template-editor';
 
 /** What the settings tab needs from the plugin. */
@@ -116,18 +117,24 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 		} finally {
 			this.savingControl = false;
 		}
-		// Choices that show or hide another setting re-evaluate the visibility rules.
-		if (structural) this.refreshDomState();
+		// The location's two folder fields share one path but render separately, so a
+		// switch rebuilds them to show the carried-over path; other choices only
+		// re-evaluate the visibility rules.
+		if (key === 'location.mode') this.refresh();
+		else if (structural) this.refreshDomState();
 	}
 
 	/** Writes one control's value into the global config. */
 	private async saveControl(key: string, value: unknown, markStructural: () => void): Promise<void> {
 		await this.ctx.store.update(({ globalSettings: g }) => {
 			switch (key) {
-				case 'location.mode':
-					g.location = value === 'folder' ? { mode: 'folder', path: '' } : { mode: 'alongside' };
+				case 'location.mode': {
+					// Switching between the two folder choices keeps the path already typed.
+					const path = g.location.mode === 'alongside' ? '' : g.location.path;
+					g.location = value === 'folder' || value === 'subfolder' ? { mode: value, path } : { mode: 'alongside' };
 					markStructural();
 					return;
+				}
 				case 'location.path':
 					if (g.location.mode === 'folder') g.location.path = String(value).trim();
 					return;
@@ -410,8 +417,34 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 
 	// --- Defaults --------------------------------------------------------
 
+	/**
+	 * The folder field for "Next to the source note, in a specified folder".
+	 * It's rendered by hand rather than declared as a text control, so it can
+	 * say why a path is refused as the user types, without saving it (Q58).
+	 */
+	private renderSubfolderPath(setting: Setting): void {
+		const location = this.settings.location;
+		addSubfolderField(setting, {
+			value: location.mode === 'subfolder' ? location.path : '',
+			describe: (segments) =>
+				segments.length === 0
+					? 'Empty: next to the source note. For example, AI/Summaries saves a note from Reading/ in Reading/AI/Summaries/.'
+					: `Saves a note from Reading/ in Reading/${segments.join('/')}/.`,
+			onChange: (path, valid) => {
+				if (!valid) return;
+				this.savingControl = true;
+				void this.ctx.store
+					.update(({ globalSettings: g }) => {
+						if (g.location.mode === 'subfolder') g.location.path = path.trim();
+					})
+					.finally(() => (this.savingControl = false));
+			},
+		});
+	}
+
 	private outputDefaults(): SettingDefinitionItem {
 		const isFolder = () => this.settings.location.mode === 'folder';
+		const isSubfolder = () => this.settings.location.mode === 'subfolder';
 		return {
 			type: 'group',
 			heading: 'Output defaults',
@@ -419,9 +452,15 @@ export class InferenceMachineSettingTab extends PluginSettingTab {
 				{
 					name: 'Location',
 					desc: 'Where new notes go, for every template that doesn\'t set its own.',
-					control: { type: 'dropdown', key: 'location.mode', options: { alongside: 'Next to the source note', folder: 'In a folder' } },
+					control: { type: 'dropdown', key: 'location.mode', options: { alongside: 'Next to the source note', subfolder: SUBFOLDER_LABEL, folder: 'In a folder' } },
 				},
 				{ name: 'Folder', visible: isFolder, control: { type: 'folder', key: 'location.path', placeholder: 'Folder', includeRoot: true } },
+				{
+					name: 'Folder',
+					visible: isSubfolder,
+					aliases: ['subfolder'],
+					render: (setting) => this.renderSubfolderPath(setting),
+				},
 				{
 					name: 'Filename',
 					desc: 'Variables work here, as in templates.',

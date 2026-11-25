@@ -164,3 +164,8 @@ textarea.im-import-text {
 	font-family: var(--font-monospace);
 	font-size: var(--font-ui-small);
 }
+
+/* A setting whose value can't be used says why in its description. */
+.im-invalid .setting-item-description {
+	color: var(--text-error);
+}

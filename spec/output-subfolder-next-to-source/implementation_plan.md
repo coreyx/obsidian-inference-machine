@@ -53,7 +53,7 @@ None at this time. The decisions behind this plan are Q58 and Q59:
 ### Settings and template editor
 
 #### [MODIFY] `src/ui/settings-tab.ts`
-- [ ] **TASK-5:** Add the choice to **Output defaults → Location**.
+- [x] **TASK-5:** Add the choice to **Output defaults → Location**.
   - Option `subfolder`, labeled **Next to the source note, in a specified folder**.
   - A **Folder** text control, `location.subfolderPath`, shown only for this choice. Its placeholder is `Folder inside the source note's folder`, and its description gives the `AI/Summaries` example.
   - It is plain text, not the vault folder picker, because the folder depends on each source note.
