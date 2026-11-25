@@ -88,7 +88,7 @@ None at this time. The decisions behind this plan are Q58 and Q59:
 - [x] **TASK-9:** Unit tests for the cases listed under Automated Tests, items 1 to 4.
 
 #### [MODIFY] `test/e2e/specs/derive.e2e.ts`
-- [ ] **TASK-10:** Extend the location scenario (10.1, 10.2) with this choice.
+- [x] **TASK-10:** Extend the location scenario (10.1, 10.2) with this choice.
   - Open `Meetings/2026-10-01.md`, choose the new option, and type `AI/Summaries`.
   - Expect `Saves to Meetings/AI/Summaries/2026-10-01 - Comprehensive summary.md`.
   - Save, and check that the file exists.

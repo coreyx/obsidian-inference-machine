@@ -152,6 +152,25 @@ describe('Inference Machine on desktop', function () {
 		await expect(popup().$('.im-path')).toHaveText('Saves to Meetings/2026-10-01 - Comprehensive summary.md');
 	});
 
+	it('creates the note in a folder inside the source note\'s folder (Q58), refusing one that leads out of it', async function () {
+		await openNote('Meetings/2026-10-01.md');
+		await openPopup();
+		await locationSelect().selectByAttribute('value', 'subfolder');
+		const folder = popup().$('input[placeholder="Folder inside the source note\'s folder"]');
+		const description = folder.parentElement().parentElement().$('.setting-item-description');
+
+		await folder.setValue('../Elsewhere');
+		await expect(description).toHaveText('The folder "../Elsewhere" leads out of the source note\'s folder.');
+		await expect(popupButton('Run')).toBeDisabled();
+
+		await folder.setValue('AI/Summaries');
+		await expect(description).toHaveText('Saves in Meetings/AI/Summaries/');
+		await runToPreview();
+		await expect(popup().$('.im-path')).toHaveText('Saves to Meetings/AI/Summaries/2026-10-01 - Comprehensive summary.md');
+		await popupButton('Save').click();
+		await browser.waitUntil(async () => (await readFile('Meetings/AI/Summaries/2026-10-01 - Comprehensive summary.md')) !== null);
+	});
+
 	it('numbers a second run\'s note instead of overwriting (10.4)', async function () {
 		for (let i = 0; i < 2; i++) {
 			await openNote('Alpha.md');
