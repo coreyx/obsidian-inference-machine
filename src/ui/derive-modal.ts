@@ -3,7 +3,7 @@ import { resolveRunConfig, type PopupOverrides } from '../core/resolve';
 import { subfolderSegments } from '../core/location';
 import type { EngineConfig, OutputLocation, Template, TemplateChoices } from '../core/schema';
 import { matchTemplate } from '../core/triggers';
-import { rememberChoice } from '../core/ui-state';
+import { forgetChoices, hasChoices, rememberChoice } from '../core/ui-state';
 import { isLocalEngine } from '../engines/factory';
 import { readNote } from '../obsidian/note-reader';
 import type { SettingsStore } from '../obsidian/settings-store';
@@ -319,6 +319,20 @@ export class DeriveModal extends Modal {
 					this.renderSetup();
 				});
 			});
+
+		// Q62: a way back to the template's own settings, which a remembered choice otherwise beats.
+		const templateId = this.templateId;
+		if (templateId !== undefined && hasChoices(data.ui, templateId)) {
+			new Setting(el)
+				.setDesc('The engine and location above were chosen in this popup for this template.')
+				.addButton((b) =>
+					b.setButtonText('Use template settings').onClick(() => {
+						this.typedLocation = undefined;
+						void this.ctx.store.update((d) => forgetChoices(d.ui, templateId, ['engineId', 'location']));
+						this.renderSetup();
+					}),
+				);
+		}
 
 		if (this.error.length > 0) {
 			const box = el.createDiv({ cls: 'im-error', attr: { role: 'alert' } });

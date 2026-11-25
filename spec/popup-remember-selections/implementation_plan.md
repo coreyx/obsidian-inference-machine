@@ -82,7 +82,7 @@ None at this time. The decisions behind this plan are Q52 to Q54, Q61 and Q62:
 ### Popup
 
 #### [MODIFY] `src/ui/derive-modal.ts`
-- [ ] **TASK-7:** (Q62 A) Add a **Use template settings** button to the setup step.
+- [x] **TASK-7:** (Q62 A) Add a **Use template settings** button to the setup step.
   - It's shown only when the current template has a remembered engine or location.
   - Clicking it calls `forgetChoices` for both fields and re-renders the setup step.
 - [x] **TASK-8:** Restore and save choices as they change (Q52 A, Q53 A).
