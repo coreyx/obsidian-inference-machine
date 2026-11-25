@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { UiState } from '../../src/core/schema';
-import { forgetChoices, hasChoices, pruneChoices, rememberChoice } from '../../src/core/ui-state';
+import type { Template, UiState } from '../../src/core/schema';
+import { changedChoiceFields, forgetChoices, hasChoices, pruneChoices, rememberChoice } from '../../src/core/ui-state';
 
 describe('rememberChoice (Q52, Q53)', () => {
 	it('creates an entry for the template, then updates it', () => {
@@ -70,5 +70,25 @@ describe('pruneChoices', () => {
 		const ui: UiState = { lastTemplateId: 't1', templateChoices: { t1: { engineId: 'e1' } } };
 		pruneChoices(ui, ['t1'], ['e1']);
 		expect(ui).toEqual({ lastTemplateId: 't1', templateChoices: { t1: { engineId: 'e1' } } });
+	});
+});
+
+describe('changedChoiceFields (Q61)', () => {
+	const base: Template = { id: 't1', name: 'One', prompt: 'p', engineId: 'e1', location: { mode: 'folder', path: 'Out' } };
+
+	it('names nothing when neither the engine nor the location changed', () => {
+		expect(changedChoiceFields(base, { ...base, name: 'Renamed', location: { mode: 'folder', path: 'Out' } })).toEqual([]);
+	});
+
+	it('names each field that changed, including back to inherit', () => {
+		expect(changedChoiceFields(base, { ...base, engineId: 'e2' })).toEqual(['engineId']);
+		expect(changedChoiceFields(base, { ...base, location: { mode: 'folder', path: 'Tasks' } })).toEqual(['location']);
+		const { engineId: _e, location: _l, ...inherit } = base;
+		expect(changedChoiceFields(base, inherit)).toEqual(['engineId', 'location']);
+	});
+
+	it('names the set fields of a new template', () => {
+		expect(changedChoiceFields(undefined, { id: 't9', name: 'New', prompt: 'p' })).toEqual([]);
+		expect(changedChoiceFields(undefined, base)).toEqual(['engineId', 'location']);
 	});
 });

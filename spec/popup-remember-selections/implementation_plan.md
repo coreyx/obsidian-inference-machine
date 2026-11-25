@@ -77,7 +77,7 @@ None at this time. The decisions behind this plan are Q52 to Q54, Q61 and Q62:
 ### Template editor
 
 #### [MODIFY] `src/ui/template-editor.ts`
-- [ ] **TASK-6:** (Q61 A) In `save()`, compare the saved template's `engineId` and `location` with the stored copy. For each one that changed, call `forgetChoices` for that field of that template, in the same `store.update`.
+- [x] **TASK-6:** (Q61 A) In `save()`, compare the saved template's `engineId` and `location` with the stored copy. For each one that changed, call `forgetChoices` for that field of that template, in the same `store.update`.
 
 ### Popup
 

@@ -1,4 +1,4 @@
-import type { TemplateChoices, UiState } from './schema';
+import type { Template, TemplateChoices, UiState } from './schema';
 
 /**
  * Helpers for the popup's remembered choices (Q52, Q53). They mutate the
@@ -50,4 +50,18 @@ export function pruneChoices(ui: UiState, templateIds: readonly string[], engine
 		}
 		if (entry.engineId !== undefined && !engines.has(entry.engineId)) forgetChoices(ui, templateId, ['engineId']);
 	}
+}
+
+/**
+ * The remembered fields that saving a template should clear (Q61): its
+ * engine or location, when the template's own setting for it changed. A
+ * remembered choice beats the template's setting, so without this a change
+ * made in the template editor would seem to do nothing.
+ */
+export function changedChoiceFields(before: Template | undefined, after: Template): (keyof TemplateChoices)[] {
+	const fields: (keyof TemplateChoices)[] = [];
+	if (before?.engineId !== after.engineId) fields.push('engineId');
+	// Locations are small plain objects, so comparing their JSON is exact enough.
+	if (JSON.stringify(before?.location) !== JSON.stringify(after.location)) fields.push('location');
+	return fields;
 }

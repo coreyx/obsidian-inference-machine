@@ -5,6 +5,7 @@ import { subfolderSegments } from '../core/location';
 import { resolveRunConfig, type RunConfig } from '../core/resolve';
 import { PROPERTY_TYPES, type OutputLocation, type PropertyType, type TagFormat, type TaggingSettings, type Template } from '../core/schema';
 import { parseTriggers } from '../core/triggers';
+import { changedChoiceFields, forgetChoices } from '../core/ui-state';
 import type { SettingsStore } from '../obsidian/settings-store';
 import { addSubfolderField, SUBFOLDER_LABEL } from './subfolder-field';
 import { FolderSuggest } from './suggesters';
@@ -398,6 +399,8 @@ export class TemplateEditorModal extends Modal {
 
 		await this.store.update((data) => {
 			const index = data.templates.findIndex((t) => t.id === draft.id);
+			// Q61: a changed engine or location replaces what the popup remembered for it.
+			forgetChoices(data.ui, draft.id, changedChoiceFields(data.templates[index], draft));
 			if (index === -1) data.templates.push(draft);
 			else data.templates[index] = draft;
 		});
