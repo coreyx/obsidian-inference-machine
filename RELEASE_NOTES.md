@@ -1,5 +1,19 @@
 # Release notes
 
+## 0.3.0 (2026-11-24)
+
+New notes can now go in a folder inside the source note's folder. To update now, run **BRAT: Plugins: Check for updates to all beta plugins and UPDATE** from the command palette.
+
+### A folder next to the source
+
+**Output location** has a third choice, **Next to the source note, in a specified folder**. Give it a folder such as `AI/Summaries`, and a note made from `Reading/dune-notes.md` is saved in `Reading/AI/Summaries/`, while one made from `Meetings/standup.md` goes to `Meetings/AI/Summaries/`. Missing folders are created, as before. It's available in the output defaults, in each template and in the popup, which shows where the note will go as you type.
+
+### Worth knowing
+
+- Leave the folder empty and the note is saved next to the source note.
+- A folder that leads out of the source note's folder, such as `../Elsewhere`, isn't allowed. The popup says so and keeps **Run** disabled, so nothing is sent.
+- Version 0.2.0 and earlier don't know this choice. If you go back to an older version after using it, or import a template that uses it into one, the output location falls back to the default.
+
 ## 0.2.0 (2026-10-22)
 
 New notes now carry over the source note's leading images and its properties. To update now, run **BRAT: Plugins: Check for updates to all beta plugins and UPDATE** from the command palette.
