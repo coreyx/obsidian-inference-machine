@@ -70,7 +70,7 @@ None at this time. The decisions behind this plan are Q58 and Q59:
 ### Popup
 
 #### [MODIFY] `src/ui/derive-modal.ts`
-- [ ] **TASK-7:** Add the option to the popup's **Output location** dropdown.
+- [x] **TASK-7:** Add the option to the popup's **Output location** dropdown.
   - When it's chosen, a plain text field with the same placeholder is shown, and `locationOverride` is set to `{ mode: 'subfolder', path }` as the user types.
   - Switching between **In a folder** and this choice carries the typed path over.
   - The setting's description previews where the note will go, `Saves in <resolved folder>/` (or `Saves in the vault root` for a root-level source), and updates as you type. When no source note is chosen yet, the description is empty.

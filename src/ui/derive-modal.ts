@@ -1,4 +1,4 @@
-import { Modal, Notice, Platform, Setting, type App, type TFile } from 'obsidian';
+import { Modal, Notice, Platform, Setting, type App, type ButtonComponent, type TFile } from 'obsidian';
 import { resolveRunConfig, type PopupOverrides } from '../core/resolve';
 import type { EngineConfig, OutputLocation, Template } from '../core/schema';
 import { matchTemplate } from '../core/triggers';
@@ -8,6 +8,7 @@ import type { SettingsStore } from '../obsidian/settings-store';
 import type { RequestName, RunController, RunPreview } from '../run/run-controller';
 import { askCollision, confirmLongNote } from './confirm-modals';
 import { createMarkdownEditor, type MarkdownEditor } from './preview-editor';
+import { addSubfolderField, SUBFOLDER_LABEL } from './subfolder-field';
 import { FolderSuggest, NoteSuggestModal } from './suggesters';
 
 /** What the popup needs from the plugin. */
@@ -64,6 +65,12 @@ export class DeriveModal extends Modal {
 	private matchToken = 0;
 	private engineOverride: string | undefined;
 	private locationOverride: OutputLocation | undefined;
+	/** False while the typed folder leads out of the source note's folder, which keeps Run disabled (Q58). */
+	private locationValid = true;
+	/** The setup step's Run button, so typing in the folder field can enable or disable it in place. */
+	private runButton: ButtonComponent | undefined;
+	/** Whether the setup has a source note, template and engine; the folder is checked separately. */
+	private canRunSetup = false;
 	private error: string[] = [];
 	private step: 'setup' | 'running' | 'preview' = 'setup';
 	private editors: MarkdownEditor[] = [];
@@ -162,6 +169,7 @@ export class DeriveModal extends Modal {
 	private renderSetup(): void {
 		this.step = 'setup';
 		this.primaryAction = undefined;
+		this.runButton = undefined;
 		const el = this.reset('Inference Machine', false);
 		const data = this.ctx.store.data;
 
@@ -223,13 +231,34 @@ export class DeriveModal extends Modal {
 		const location = resolved?.location ?? { mode: 'alongside' };
 		const locationSetting = new Setting(el).setName('Output location');
 		locationSetting.addDropdown((dropdown) => {
-			dropdown.addOption('alongside', 'Next to the source note').addOption('folder', 'In a folder');
+			dropdown.addOption('alongside', 'Next to the source note').addOption('subfolder', SUBFOLDER_LABEL).addOption('folder', 'In a folder');
 			dropdown.setValue(location.mode);
 			dropdown.onChange((mode) => {
-				this.locationOverride = mode === 'folder' ? { mode: 'folder', path: location.mode === 'folder' ? location.path : '' } : { mode: 'alongside' };
+				// Switching between the two folder choices keeps the path already typed.
+				const path = location.mode === 'alongside' ? '' : location.path;
+				this.locationOverride = mode === 'folder' || mode === 'subfolder' ? { mode, path } : { mode: 'alongside' };
 				this.renderSetup();
 			});
 		});
+		this.locationValid = true;
+		if (location.mode === 'subfolder') {
+			const sourceFolder = this.source?.parent?.path ?? '';
+			addSubfolderField(locationSetting, {
+				value: location.path,
+				describe: (segments) => {
+					if (!this.source) return '';
+					const folder = [sourceFolder === '/' ? '' : sourceFolder, ...segments].filter((part) => part !== '').join('/');
+					return folder === '' ? 'Saves in the vault root' : `Saves in ${folder}/`;
+				},
+				onChange: (path, valid) => {
+					this.locationOverride = { mode: 'subfolder', path };
+					this.locationValid = valid;
+					this.updateRunButton();
+				},
+			});
+			// The field starts with a path that may already be refused, such as one remembered from a typo.
+			this.locationValid = !locationSetting.settingEl.hasClass('im-invalid');
+		}
 		if (location.mode === 'folder') {
 			locationSetting.addText((text) => {
 				text.setPlaceholder('Folder').setValue(location.path);
@@ -267,10 +296,19 @@ export class DeriveModal extends Modal {
 		new Setting(el)
 			.addButton((b) => b.setButtonText('Cancel').onClick(() => this.close()))
 			.addButton((b) => {
-				b.setButtonText('Run').setCta().setDisabled(!canRun).onClick(() => void this.run());
-				if (canRun) window.setTimeout(() => b.buttonEl.focus(), 0);
+				this.runButton = b;
+				b.setButtonText('Run').setCta().onClick(() => void this.run());
+				if (canRun && this.locationValid) window.setTimeout(() => b.buttonEl.focus(), 0);
 			});
-		this.primaryAction = canRun ? () => void this.run() : undefined;
+		this.canRunSetup = canRun;
+		this.updateRunButton();
+	}
+
+	/** Enables Run, and Mod+Enter, only when the setup is complete and the folder can be used. */
+	private updateRunButton(): void {
+		const ready = this.canRunSetup && this.locationValid;
+		this.runButton?.setDisabled(!ready);
+		this.primaryAction = ready ? () => void this.run() : undefined;
 	}
 
 	// --- Running ---------------------------------------------------------
