@@ -4,6 +4,16 @@ All notable changes to Inference Machine are recorded here. The format follows [
 
 ## [Unreleased]
 
+### Added
+
+- **Use template settings:** a popup button that forgets the engine and location remembered for the current template, so its own settings apply again.
+
+### Changed
+
+- **The popup remembers your choices as soon as you make them,** even if you close it without running. The last template is remembered for the whole vault, and the engine and output location for each template separately, so a choice made for one template never changes another. Template commands and triggers still pick the template first.
+- **The single remembered output location is gone.** Before, the last location chosen in the popup applied to every template and beat a template's own location. After updating, each template starts from its own location until you change it in the popup.
+- **Changing a template's engine or location in its settings resets what the popup remembered for it,** so the new setting takes effect.
+
 ## [0.3.0] - 2026-11-24
 
 ### Added
