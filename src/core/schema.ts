@@ -165,8 +165,30 @@ export interface GlobalSettings {
 	lmStudioPort: number;
 }
 
-/** Popup state remembered between runs (19.0.3). */
+/**
+ * Popup state remembered between popups. The template is remembered for the
+ * whole vault; the engine and location for each template (Q53), so a choice
+ * made for one template never changes another.
+ */
 export interface UiState {
+	/** The template last chosen in the popup or run, offered when no command or trigger picks one (22.0.3). */
 	lastTemplateId?: string;
+	/**
+	 * The single location older versions remembered for every template.
+	 * Read by nothing once each template remembers its own; dropped on load.
+	 */
 	lastLocation?: OutputLocation;
+	/** Choices made in the popup, keyed by template id. */
+	templateChoices?: Record<string, TemplateChoices>;
+}
+
+/**
+ * The popup choices remembered for one template. A missing field means the
+ * template's own setting applies, then the global default.
+ */
+export interface TemplateChoices {
+	/** The engine picked in the popup for this template. */
+	engineId?: string;
+	/** The output location picked in the popup for this template. */
+	location?: OutputLocation;
 }

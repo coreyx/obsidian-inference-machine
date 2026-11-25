@@ -40,7 +40,7 @@ None at this time. The decisions behind this plan are Q52 to Q54, Q61 and Q62:
 ### State model
 
 #### [MODIFY] `src/core/schema.ts`
-- [ ] **TASK-1:** Change `UiState` to remember the engine and location per template.
+- [x] **TASK-1:** Change `UiState` to remember the engine and location per template.
   - `lastTemplateId?: string` stays.
   - Remove `lastLocation`.
   - Add `templateChoices?: Record<string, TemplateChoices>`, keyed by template id.
