@@ -48,7 +48,7 @@ None at this time. The decisions behind this plan are Q52 to Q54, Q61 and Q62:
   - Document each: what it holds, and that a missing field means "use the template's setting".
 
 #### [NEW] `src/core/ui-state.ts`
-- [ ] **TASK-2:** Add pure helpers for the remembered state, with no Obsidian imports:
+- [x] **TASK-2:** Add pure helpers for the remembered state, with no Obsidian imports:
   - `rememberChoice(ui, templateId, field, value)`: sets `templateChoices[templateId][field]`, creating the entry when needed.
   - `forgetChoices(ui, templateId, fields)`: removes the named fields, and removes the template's entry once it's empty.
   - `pruneChoices(ui, templateIds, engineIds)`:
