@@ -57,8 +57,12 @@ export interface EngineConfig {
 	};
 }
 
-/** Where the output note goes: a fixed folder, or the source note's folder. */
-export type OutputLocation = { mode: 'folder'; path: string } | { mode: 'alongside' };
+/**
+ * Where the output note goes: a fixed folder, the source note's folder, or a
+ * folder inside the source note's folder. A `subfolder` path is relative to
+ * the source note's folder, and an empty one means that folder itself (Q59).
+ */
+export type OutputLocation = { mode: 'folder'; path: string } | { mode: 'alongside' } | { mode: 'subfolder'; path: string };
 
 /**
  * A reusable recipe for deriving a note. Field names follow Web Clipper's

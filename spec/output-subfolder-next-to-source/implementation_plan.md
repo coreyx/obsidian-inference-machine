@@ -26,7 +26,7 @@ None at this time. The decisions behind this plan are Q58 and Q59:
 ### Location model
 
 #### [MODIFY] `src/core/schema.ts`
-- [ ] **TASK-1:** Add the third location type to `OutputLocation`: `{ mode: 'subfolder'; path: string }`.
+- [x] **TASK-1:** Add the third location type to `OutputLocation`: `{ mode: 'subfolder'; path: string }`.
   - Document `path` as relative to the source note's folder.
   - Note that an empty path means the source note's own folder.
 
