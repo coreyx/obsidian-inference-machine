@@ -91,6 +91,18 @@ describe('resolveRunConfig: layers', () => {
 		expect(config.sources.location).toBe('template');
 	});
 
+	it('resolves a folder next to the source like any other location (Q58)', () => {
+		const globalSettings: GlobalSettings = { ...defaultGlobalSettings(), location: { mode: 'subfolder', path: 'AI' } };
+		expect(resolveRunConfig(input({ globalSettings })).config.location).toEqual({ mode: 'subfolder', path: 'AI' });
+
+		const template: Template = { id: 't', name: 'T', prompt: 'p', location: { mode: 'subfolder', path: 'Digests' } };
+		expect(resolveRunConfig(input({ globalSettings, template })).config.location).toEqual({ mode: 'subfolder', path: 'Digests' });
+
+		const { config } = resolveRunConfig(input({ globalSettings, template, popup: { location: { mode: 'subfolder', path: 'Mine' } } }));
+		expect(config.location).toEqual({ mode: 'subfolder', path: 'Mine' });
+		expect(config.sources.location).toBe('popup');
+	});
+
 	it('takes the popup location over the template\'s', () => {
 		const template: Template = { id: 't', name: 'T', prompt: 'p', location: { mode: 'folder', path: 'A' } };
 		const { config } = resolveRunConfig(input({ template, popup: { location: { mode: 'alongside' } } }));

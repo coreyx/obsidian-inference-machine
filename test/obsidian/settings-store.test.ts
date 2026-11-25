@@ -77,6 +77,19 @@ describe('normalizePluginData', () => {
 		expect(data.ui).toEqual({ lastTemplateId: 't1' });
 	});
 
+	it('loads a folder next to the source as the default and the remembered location (Q58)', () => {
+		const location = { mode: 'subfolder', path: 'AI/Summaries' };
+		const { data, warnings } = normalizePluginData({ schemaVersion: SCHEMA_VERSION, globalSettings: { location }, ui: { lastLocation: location } });
+		expect(warnings).toEqual([]);
+		expect(data.globalSettings.location).toEqual(location);
+		expect(data.ui.lastLocation).toEqual(location);
+	});
+
+	it('drops a remembered folder that leads out of the source\'s folder', () => {
+		const { data } = normalizePluginData({ schemaVersion: SCHEMA_VERSION, ui: { lastLocation: { mode: 'subfolder', path: '../x' } } });
+		expect(data.ui.lastLocation).toBeUndefined();
+	});
+
 	it('rejects engines with an unknown provider type, and says so', () => {
 		const { data, warnings } = normalizePluginData({
 			schemaVersion: SCHEMA_VERSION,

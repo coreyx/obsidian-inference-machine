@@ -48,6 +48,12 @@ describe('exportTemplates and importTemplates', () => {
 		expect(engineId).toBe('other-vault-id');
 	});
 
+	it('round-trips a folder next to the source (Q58)', () => {
+		const template: Template = { ...full, location: { mode: 'subfolder', path: 'AI/Summaries' } };
+		const result = importTemplates(exportTemplates([template], [claude]), [], [claude], () => 'fresh-id');
+		expect(result.ok && result.templates[0]?.location).toEqual({ mode: 'subfolder', path: 'AI/Summaries' });
+	});
+
 	it('never exports credentials, only the engine\'s name (20.2)', () => {
 		const text = exportTemplates([full], [claude]);
 		expect(text).not.toContain('anthropic-secret-id');

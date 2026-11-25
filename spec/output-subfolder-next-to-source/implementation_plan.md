@@ -85,7 +85,7 @@ None at this time. The decisions behind this plan are Q58 and Q59:
 ### Tests
 
 #### [MODIFY] `test/core/data-validation.test.ts`, [NEW] `test/core/location.test.ts`, [MODIFY] `test/obsidian/adapters.test.ts`, `test/core/resolve.test.ts`, `test/obsidian/settings-store.test.ts`, `test/core/template-transfer.test.ts`
-- [ ] **TASK-9:** Unit tests for the cases listed under Automated Tests, items 1 to 4.
+- [x] **TASK-9:** Unit tests for the cases listed under Automated Tests, items 1 to 4.
 
 #### [MODIFY] `test/e2e/specs/derive.e2e.ts`
 - [ ] **TASK-10:** Extend the location scenario (10.1, 10.2) with this choice.
