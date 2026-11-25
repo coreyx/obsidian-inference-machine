@@ -57,7 +57,7 @@ None at this time. The decisions behind this plan are Q52 to Q54, Q61 and Q62:
     - Clears `lastTemplateId` when its template no longer exists.
 
 #### [MODIFY] `src/core/data-validation.ts`
-- [ ] **TASK-3:** Update `fillUiState` for the new shape.
+- [x] **TASK-3:** Update `fillUiState` for the new shape.
   - Read `templateChoices` as a record of records. Keep a string `engineId`, and a `location` that passes `checkLocation`.
   - Silently forget anything else, as popup state is today.
   - Don't read the old `lastLocation`, so it's dropped on the next save.

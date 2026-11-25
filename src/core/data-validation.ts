@@ -9,6 +9,7 @@ import type {
 	TaggingOverrides,
 	TaggingSettings,
 	Template,
+	TemplateChoices,
 	UiState,
 } from './schema';
 import { PROPERTY_TYPES, PROVIDER_TYPES } from './schema';
@@ -284,12 +285,25 @@ export function fillGlobal(raw: unknown): Checked<GlobalSettings> {
 	return { value: global, problems };
 }
 
-/** Validates remembered popup state; unknown values are simply forgotten. */
+/**
+ * Validates remembered popup state; unknown values are simply forgotten, since
+ * losing a remembered choice costs only a click. The single location older
+ * versions remembered for every template isn't read, so it's dropped on the
+ * next save: each template now remembers its own (Q53).
+ */
 export function fillUiState(raw: unknown): UiState {
 	if (!isRecord(raw)) return {};
 	const ui: UiState = {};
 	if (typeof raw.lastTemplateId === 'string') ui.lastTemplateId = raw.lastTemplateId;
-	const location = checkLocation(raw.lastLocation, 'Popup state');
-	if (location.value) ui.lastLocation = location.value;
+	const choices: Record<string, TemplateChoices> = {};
+	for (const [templateId, entry] of Object.entries(isRecord(raw.templateChoices) ? raw.templateChoices : {})) {
+		if (!isRecord(entry)) continue;
+		const kept: TemplateChoices = {};
+		if (typeof entry.engineId === 'string') kept.engineId = entry.engineId;
+		const location = checkLocation(entry.location, 'Popup state');
+		if (location.value) kept.location = location.value;
+		if (Object.keys(kept).length > 0) choices[templateId] = kept;
+	}
+	if (Object.keys(choices).length > 0) ui.templateChoices = choices;
 	return ui;
 }

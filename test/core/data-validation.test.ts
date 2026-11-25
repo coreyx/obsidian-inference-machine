@@ -194,9 +194,27 @@ describe('fillGlobal and fillUiState', () => {
 
 	it('forgets unusable popup state', () => {
 		expect(fillUiState('x')).toEqual({});
-		expect(fillUiState({ lastTemplateId: 't', lastLocation: { mode: 'alongside' } })).toEqual({
-			lastTemplateId: 't',
-			lastLocation: { mode: 'alongside' },
+		expect(fillUiState({ lastTemplateId: 't' })).toEqual({ lastTemplateId: 't' });
+	});
+
+	it('keeps each template\'s remembered engine and location (Q53)', () => {
+		const templateChoices = { t1: { engineId: 'e1', location: { mode: 'folder', path: 'Out' } }, t2: { location: { mode: 'subfolder', path: 'AI' } } };
+		expect(fillUiState({ lastTemplateId: 't1', templateChoices })).toEqual({ lastTemplateId: 't1', templateChoices });
+	});
+
+	it('drops unusable remembered choices, and empty entries', () => {
+		const ui = fillUiState({
+			templateChoices: {
+				t1: { engineId: 7, location: { mode: 'subfolder', path: '../x' } },
+				t2: { engineId: 'e2', location: { mode: 'nowhere' } },
+				t3: 'x',
+			},
 		});
+		expect(ui).toEqual({ templateChoices: { t2: { engineId: 'e2' } } });
+		expect(fillUiState({ templateChoices: [] })).toEqual({});
+	});
+
+	it('forgets the single location older versions remembered for every template', () => {
+		expect(fillUiState({ lastTemplateId: 't', lastLocation: { mode: 'folder', path: 'Out' } })).toEqual({ lastTemplateId: 't' });
 	});
 });
