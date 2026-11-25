@@ -1,9 +1,9 @@
 import { Modal, Setting, type App } from 'obsidian';
 import { DEFAULTS } from '../core/defaults';
 import { collectTemplatePrompts } from '../core/inline';
+import { subfolderSegments } from '../core/location';
 import { resolveRunConfig, type RunConfig } from '../core/resolve';
 import { PROPERTY_TYPES, type OutputLocation, type PropertyType, type TagFormat, type TaggingSettings, type Template } from '../core/schema';
-import { subfolderSegments } from '../core/location';
 import { parseTriggers } from '../core/triggers';
 import type { SettingsStore } from '../obsidian/settings-store';
 import { addSubfolderField, SUBFOLDER_LABEL } from './subfolder-field';
