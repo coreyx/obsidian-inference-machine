@@ -19,6 +19,19 @@ describe('checkLocation', () => {
 
 	it('reports a malformed location', () => {
 		expect(checkLocation({ mode: 'folder' }, 'T').problems).toEqual(['T: output location isn\'t valid']);
+		expect(checkLocation({ mode: 'subfolder' }, 'T').problems).toEqual(['T: output location isn\'t valid']);
+	});
+
+	it('accepts a folder inside the source note\'s folder, empty included (Q58, Q59)', () => {
+		expect(checkLocation({ mode: 'subfolder', path: 'AI' }, 'x')).toEqual({ value: { mode: 'subfolder', path: 'AI' }, problems: [] });
+		expect(checkLocation({ mode: 'subfolder', path: '' }, 'x').value).toEqual({ mode: 'subfolder', path: '' });
+	});
+
+	it('drops a folder that leads out of the source note\'s folder', () => {
+		expect(checkLocation({ mode: 'subfolder', path: '../x' }, 'T')).toEqual({
+			value: undefined,
+			problems: ['T: output location leads out of the source note\'s folder'],
+		});
 	});
 });
 

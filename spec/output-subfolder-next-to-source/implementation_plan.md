@@ -39,7 +39,7 @@ None at this time. The decisions behind this plan are Q58 and Q59:
   - It has no Obsidian imports, so it can be unit-tested and used by both validation and the UI.
 
 #### [MODIFY] `src/core/data-validation.ts`
-- [ ] **TASK-3:** Accept `{ mode: 'subfolder', path: string }` in `checkLocation`.
+- [x] **TASK-3:** Accept `{ mode: 'subfolder', path: string }` in `checkLocation`.
   - A path that `subfolderSegments` rejects is reported as `<label>: output location leads out of the source note's folder` and dropped, like any other invalid location.
   - Templates, global settings, imports and the remembered popup location all load through `checkLocation`, so they all accept the new type.
 

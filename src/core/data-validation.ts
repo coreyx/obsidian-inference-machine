@@ -1,4 +1,5 @@
 import { DEFAULTS } from './defaults';
+import { subfolderSegments } from './location';
 import type {
 	EngineConfig,
 	GlobalSettings,
@@ -45,6 +46,11 @@ export function checkLocation(raw: unknown, label: string): Checked<OutputLocati
 	if (isRecord(raw) && raw.mode === 'alongside') return { value: { mode: 'alongside' }, problems: [] };
 	if (isRecord(raw) && raw.mode === 'folder' && typeof raw.path === 'string') {
 		return { value: { mode: 'folder', path: raw.path }, problems: [] };
+	}
+	if (isRecord(raw) && raw.mode === 'subfolder' && typeof raw.path === 'string') {
+		// A hand-edited or imported path may try to reach outside the source's folder (Q58).
+		if ('error' in subfolderSegments(raw.path)) return { value: undefined, problems: [`${label}: output location leads out of the source note's folder`] };
+		return { value: { mode: 'subfolder', path: raw.path }, problems: [] };
 	}
 	return { value: undefined, problems: [`${label}: output location isn't valid`] };
 }
