@@ -4,6 +4,10 @@ All notable changes to Inference Machine are recorded here. The format follows [
 
 ## [Unreleased]
 
+### Added
+
+- **Next to the source note, in a specified folder:** a third output location, which saves the new note in a folder inside the source note's folder. With `AI/Summaries`, a note from `Reading/` is saved in `Reading/AI/Summaries/`. It can be set in the output defaults, in a template or in the popup, and missing folders are created. An empty folder means next to the source note. A folder that leads out of the source's folder with `..` is refused before anything is sent. Version 0.2.0 and earlier don't recognize this location and fall back to the default.
+
 ## [0.2.0] - 2026-10-22
 
 ### Added
