@@ -187,6 +187,38 @@ describe('SettingsStore', () => {
 		expect(h.saveData).not.toHaveBeenCalled();
 	});
 
+	it('forgets popup choices for a template or engine deleted by an update', async () => {
+		const data = defaultPluginData();
+		data.engines = [
+			{ id: 'e1', name: 'Claude', provider: 'anthropic', model: 'claude-sonnet-5-5', secretId: 'k' },
+			{ id: 'e2', name: 'Local', provider: 'openai-compatible', model: 'm', baseUrl: 'http://127.0.0.1:1234/v1' },
+		];
+		data.templates = [
+			{ id: 't1', name: 'One', prompt: 'p' },
+			{ id: 't2', name: 'Two', prompt: 'p' },
+		];
+		data.ui = { lastTemplateId: 't2', templateChoices: { t1: { engineId: 'e2', location: { mode: 'alongside' } }, t2: { engineId: 'e1' } } };
+		const store = new SettingsStore(host(data));
+		await store.load();
+		expect(store.data.ui).toEqual(data.ui);
+
+		await store.update((d) => (d.engines = d.engines.filter((e) => e.id !== 'e2')));
+		expect(store.data.ui.templateChoices).toEqual({ t1: { location: { mode: 'alongside' } }, t2: { engineId: 'e1' } });
+
+		await store.update((d) => (d.templates = d.templates.filter((t) => t.id !== 't2')));
+		expect(store.data.ui).toEqual({ templateChoices: { t1: { location: { mode: 'alongside' } } } });
+	});
+
+	it('forgets popup choices for templates and engines missing on load', () => {
+		const { data } = normalizePluginData({
+			schemaVersion: SCHEMA_VERSION,
+			engines: [{ id: 'e1', name: 'Claude', provider: 'anthropic', model: 'claude-sonnet-5-5', secretId: 'k' }],
+			templates: [{ id: 't1', name: 'Summary', prompt: 'Summarize this.' }],
+			ui: { lastTemplateId: 'gone', templateChoices: { gone: { engineId: 'e1' }, t1: { engineId: 'deleted' } } },
+		});
+		expect(data.ui).toEqual({});
+	});
+
 	it('saves after an update', async () => {
 		const h = host(defaultPluginData());
 		const store = new SettingsStore(h);

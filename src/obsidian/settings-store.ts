@@ -3,6 +3,7 @@ import { defaultPluginData } from '../core/defaults';
 import type { PluginData } from '../core/schema';
 import { SCHEMA_VERSION } from '../core/schema';
 import { seedBuiltIns, upgradeBuiltIns } from '../core/templates';
+import { pruneChoices } from '../core/ui-state';
 
 /**
  * Upgrades raw `data.json` from one schema version to the next. Keyed by the
@@ -87,12 +88,22 @@ export function normalizePluginData(
 		templates: fromNewerVersion ? templates : upgradeBuiltIns(templates).templates,
 		ui: fillUiState(migrated.ui),
 	};
+	pruneRemembered(data);
 	// A default that points at a deleted engine would silently resolve to nothing.
 	if (typeof migrated.defaultEngineId === 'string' && engines.some((e) => e.id === migrated.defaultEngineId)) {
 		data.defaultEngineId = migrated.defaultEngineId;
 	}
 
 	return { data, warnings, changed: JSON.stringify(data) !== JSON.stringify(raw), fromNewerVersion };
+}
+
+/** Forgets popup choices for templates and engines that no longer exist. */
+function pruneRemembered(data: PluginData): void {
+	pruneChoices(
+		data.ui,
+		data.templates.map((t) => t.id),
+		data.engines.map((e) => e.id),
+	);
 }
 
 /** The part of Obsidian's `Plugin` the store needs: reading and writing `data.json`. */
@@ -142,9 +153,14 @@ export class SettingsStore {
 		for (const listener of this.listeners) listener(this.current);
 	}
 
-	/** Applies a change to the settings and saves them. */
+	/**
+	 * Applies a change to the settings and saves them. Remembered popup choices
+	 * are tidied afterwards, so deleting a template or an engine anywhere, in
+	 * settings or by an import that replaces templates, also forgets them.
+	 */
 	async update(change: (data: PluginData) => void): Promise<void> {
 		change(this.current);
+		pruneRemembered(this.current);
 		await this.save();
 	}
 }

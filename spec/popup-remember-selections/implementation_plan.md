@@ -63,7 +63,7 @@ None at this time. The decisions behind this plan are Q52 to Q54, Q61 and Q62:
   - Don't read the old `lastLocation`, so it's dropped on the next save.
 
 #### [MODIFY] `src/obsidian/settings-store.ts`
-- [ ] **TASK-4:** Tidy the remembered state against what exists.
+- [x] **TASK-4:** Tidy the remembered state against what exists.
   - After `fillUiState`, call `pruneChoices` with the loaded template and engine ids.
   - Call it again after every `update`, so deleting a template or an engine, in settings or through an import that replaces templates, also forgets what was remembered for it.
 
