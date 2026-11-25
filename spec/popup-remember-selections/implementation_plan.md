@@ -85,7 +85,7 @@ None at this time. The decisions behind this plan are Q52 to Q54, Q61 and Q62:
 - [ ] **TASK-7:** (Q62 A) Add a **Use template settings** button to the setup step.
   - It's shown only when the current template has a remembered engine or location.
   - Clicking it calls `forgetChoices` for both fields and re-renders the setup step.
-- [ ] **TASK-8:** Restore and save choices as they change (Q52 A, Q53 A).
+- [x] **TASK-8:** Restore and save choices as they change (Q52 A, Q53 A).
   - **Restoring.** Derive the popup's overrides from the current template's remembered choices, whenever the template changes and however it was chosen (prefill, trigger, command or the dropdown).
     - Replace the per-popup `engineOverride` and `locationOverride` with reads from `store.data.ui.templateChoices[templateId]`.
     - Keep a transient `typedLocation` only for a folder path that's currently refused, so the field keeps what was typed without saving it.

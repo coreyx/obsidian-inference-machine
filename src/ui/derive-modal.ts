@@ -1,7 +1,9 @@
 import { Modal, Notice, Platform, Setting, type App, type ButtonComponent, type TFile } from 'obsidian';
 import { resolveRunConfig, type PopupOverrides } from '../core/resolve';
-import type { EngineConfig, OutputLocation, Template } from '../core/schema';
+import { subfolderSegments } from '../core/location';
+import type { EngineConfig, OutputLocation, Template, TemplateChoices } from '../core/schema';
 import { matchTemplate } from '../core/triggers';
+import { rememberChoice } from '../core/ui-state';
 import { isLocalEngine } from '../engines/factory';
 import { readNote } from '../obsidian/note-reader';
 import type { SettingsStore } from '../obsidian/settings-store';
@@ -63,8 +65,11 @@ export class DeriveModal extends Modal {
 	private matchedTrigger: string | undefined;
 	/** Guards against an older trigger check finishing after a newer one. */
 	private matchToken = 0;
-	private engineOverride: string | undefined;
-	private locationOverride: OutputLocation | undefined;
+	/**
+	 * A folder path typed for this template that is refused, such as one with
+	 * `..`. It's shown and blocks Run, but isn't remembered (Q58).
+	 */
+	private typedLocation: OutputLocation | undefined;
 	/** False while the typed folder leads out of the source note's folder, which keeps Run disabled (Q58). */
 	private locationValid = true;
 	/** The setup step's Run button, so typing in the folder field can enable or disable it in place. */
@@ -104,7 +109,7 @@ export class DeriveModal extends Modal {
 		this.contentEl.empty();
 	}
 
-	/** Fills the setup step from the active note and remembered choices (2.0.1, 19.0.3). */
+	/** Fills the setup step from the active note and the remembered template (2.0.1, 22.0.3). */
 	private prefill(): void {
 		const active = this.app.workspace.getActiveFile();
 		// 2.0.3: a PDF, canvas or other non-Markdown file leaves the source empty.
@@ -115,9 +120,8 @@ export class DeriveModal extends Modal {
 		const commanded = known(this.options.templateId);
 		// 22.0.3: a template command beats triggers, which beat the last-used template.
 		this.templatePicked = commanded !== undefined;
+		// The template's remembered engine and location apply however it was chosen (Q53).
 		this.templateId = commanded ?? this.fallbackTemplateId;
-		// A template command chooses its own settings; otherwise the last location is remembered.
-		if (this.options.templateId === undefined && ui.lastLocation) this.locationOverride = ui.lastLocation;
 		void this.applyTriggers();
 	}
 
@@ -143,11 +147,36 @@ export class DeriveModal extends Modal {
 		return this.ctx.store.data.templates.find((t) => t.id === this.templateId);
 	}
 
+	/** What was remembered for the current template (Q53). */
+	private get remembered(): TemplateChoices {
+		return (this.templateId !== undefined ? this.ctx.store.data.ui.templateChoices?.[this.templateId] : undefined) ?? {};
+	}
+
+	/** The popup's layer of settings: the current template's remembered choices, and a refused path being typed. */
 	private popup(): PopupOverrides {
+		const { engineId, location } = this.remembered;
+		const shown = this.typedLocation ?? location;
 		return {
-			...(this.engineOverride !== undefined ? { engineId: this.engineOverride } : {}),
-			...(this.locationOverride !== undefined ? { location: this.locationOverride } : {}),
+			...(engineId !== undefined ? { engineId } : {}),
+			...(shown !== undefined ? { location: shown } : {}),
 		};
+	}
+
+	/**
+	 * Saves a choice for the current template the moment it's made, so it's
+	 * there next time even if the popup is closed without running (Q52).
+	 */
+	private remember<K extends keyof TemplateChoices>(field: K, value: TemplateChoices[K]): void {
+		const templateId = this.templateId;
+		if (templateId === undefined) return;
+		void this.ctx.store.update((d) => rememberChoice(d.ui, templateId, field, value));
+	}
+
+	/** Remembers a location, unless it's a folder that leads out of the source's folder, which is only shown. */
+	private chooseLocation(location: OutputLocation): void {
+		const refused = location.mode === 'subfolder' && 'error' in subfolderSegments(location.path);
+		this.typedLocation = refused ? location : undefined;
+		if (!refused) this.remember('location', location);
 	}
 
 	private destroyEditors(): void {
@@ -224,6 +253,10 @@ export class DeriveModal extends Modal {
 					this.templateId = id;
 					this.templatePicked = true;
 					this.matchedTrigger = undefined;
+					// A refused path belonged to the previous template.
+					this.typedLocation = undefined;
+					// Q52: the template is remembered as soon as it's chosen, not only after a run.
+					void this.ctx.store.update((d) => (d.ui.lastTemplateId = id));
 					this.renderSetup();
 				});
 			});
@@ -236,7 +269,7 @@ export class DeriveModal extends Modal {
 			dropdown.onChange((mode) => {
 				// Switching between the two folder choices keeps the path already typed.
 				const path = location.mode === 'alongside' ? '' : location.path;
-				this.locationOverride = mode === 'folder' || mode === 'subfolder' ? { mode, path } : { mode: 'alongside' };
+				this.chooseLocation(mode === 'folder' || mode === 'subfolder' ? { mode, path } : { mode: 'alongside' });
 				this.renderSetup();
 			});
 		});
@@ -251,7 +284,7 @@ export class DeriveModal extends Modal {
 					return folder === '' ? 'Saves in the vault root' : `Saves in ${folder}/`;
 				},
 				onChange: (path, valid) => {
-					this.locationOverride = { mode: 'subfolder', path };
+					this.chooseLocation({ mode: 'subfolder', path });
 					this.locationValid = valid;
 					this.updateRunButton();
 				},
@@ -262,7 +295,7 @@ export class DeriveModal extends Modal {
 		if (location.mode === 'folder') {
 			locationSetting.addText((text) => {
 				text.setPlaceholder('Folder').setValue(location.path);
-				const set = (path: string) => (this.locationOverride = { mode: 'folder', path });
+				const set = (path: string) => this.chooseLocation({ mode: 'folder', path });
 				text.onChange(set);
 				new FolderSuggest(this.app, text.inputEl, set);
 			});
@@ -282,7 +315,7 @@ export class DeriveModal extends Modal {
 				for (const e of data.engines) dropdown.addOption(e.id, `${e.name} (${isLocalEngine(e) ? 'local' : 'remote'})`);
 				if (engine) dropdown.setValue(engine.id);
 				dropdown.onChange((id) => {
-					this.engineOverride = id;
+					this.remember('engineId', id);
 					this.renderSetup();
 				});
 			});

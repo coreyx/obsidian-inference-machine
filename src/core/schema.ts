@@ -173,11 +173,6 @@ export interface GlobalSettings {
 export interface UiState {
 	/** The template last chosen in the popup or run, offered when no command or trigger picks one (22.0.3). */
 	lastTemplateId?: string;
-	/**
-	 * The single location older versions remembered for every template.
-	 * Read by nothing once each template remembers its own; dropped on load.
-	 */
-	lastLocation?: OutputLocation;
 	/** Choices made in the popup, keyed by template id. */
 	templateChoices?: Record<string, TemplateChoices>;
 }
