@@ -31,7 +31,7 @@ None at this time. The decisions behind this plan are Q58 and Q59:
   - Note that an empty path means the source note's own folder.
 
 #### [NEW] `src/core/location.ts`
-- [ ] **TASK-2:** Add `subfolderSegments(path: string): { segments: string[] } | { error: string }`, a pure check for the relative path.
+- [x] **TASK-2:** Add `subfolderSegments(path: string): { segments: string[] } | { error: string }`, a pure check for the relative path.
   - It splits on `/` and `\`, trims each segment, and drops empty segments and `.`.
   - A leading or trailing slash is therefore ignored, so `/AI/` means `AI`.
   - A `..` segment returns the error `The folder "<path>" leads out of the source note's folder.`
