@@ -101,7 +101,7 @@ None at this time. The decisions behind this plan are Q52 to Q54, Q61 and Q62:
 ### Documentation
 
 #### [MODIFY] `README.md`
-- [ ] **TASK-9:** Under **Getting started**, describe what the popup remembers:
+- [x] **TASK-9:** Under **Getting started**, describe what the popup remembers:
   - The last template, for the whole vault.
   - Each template's engine and location.
   - That choices are remembered the moment they're made.

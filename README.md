@@ -46,6 +46,13 @@ Every template also has its own command, such as **Inference Machine: Derive wit
 
 In the popup, `Ctrl+Enter` (`Cmd+Enter` on macOS) runs the template, and again saves the preview. `Esc` cancels or closes. Closing the popup at any point writes nothing.
 
+The popup remembers your choices the moment you make them, even if you close it without running:
+
+- **Template:** the last one you chose is selected next time, unless a template command or a [trigger](#triggers) picks one.
+- **Engine and output location:** remembered for each template separately, so a choice made for one template never changes another. They're restored whenever that template is selected, however it was picked.
+
+A remembered choice wins over the template's own setting. To go back to the template's settings, click **Use template settings** in the popup. Changing a template's engine or location in its settings also resets what the popup remembered for it.
+
 ## Engines
 
 An engine is a provider, a model and its settings. You can save several, choose one as the default, set an engine per template, and switch engines in the popup for a single run.
