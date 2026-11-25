@@ -111,7 +111,7 @@ None at this time. The decisions behind this plan are Q52 to Q54, Q61 and Q62:
 ### Tests
 
 #### [NEW] `test/core/ui-state.test.ts`, [MODIFY] `test/core/data-validation.test.ts`, `test/obsidian/settings-store.test.ts`, `test/run/run-controller.test.ts`
-- [ ] **TASK-10:** Unit tests for the cases listed under Automated Tests, items 1 to 4.
+- [x] **TASK-10:** Unit tests for the cases listed under Automated Tests, items 1 to 4.
 
 #### [MODIFY] `test/e2e/specs/derive.e2e.ts`
 - [ ] **TASK-11:** Replace the 19.3 scenario with scenarios for:
