@@ -13,6 +13,7 @@ const NOTE_VARIABLES = [
 	'title',
 	'content',
 	'body',
+	'selection',
 	'frontmatter',
 	'properties',
 	'path',
@@ -95,6 +96,8 @@ export function buildVariables(note: NoteSnapshot, options: VariableOptions): Re
 		date: formatDate(options.now),
 		time: formatTime(options.now),
 		template: options.templateName,
+		// Empty in a whole-note run, as any missing value renders (6.0.3).
+		selection: note.selection ?? '',
 	};
 	if (options.output !== undefined) variables.output = options.output;
 	return variables;
