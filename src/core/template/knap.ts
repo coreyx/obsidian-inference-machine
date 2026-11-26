@@ -267,6 +267,15 @@ export function referencedVariables(template: string): Set<string> {
 }
 
 /**
+ * Whether any of a template's fields reads `{{selection}}`. Such a template
+ * was written for selections and keeps the whole note in `{{content}}` and
+ * `{{body}}`, so it can use both (Q64).
+ */
+export function usesSelection(fields: readonly string[]): boolean {
+	return fields.some((field) => referencedVariables(field).has('selection'));
+}
+
+/**
  * Checks a template field for the template editor:
  *
  * - syntax errors, and unknown filters or invalid filter arguments (7.0.3)

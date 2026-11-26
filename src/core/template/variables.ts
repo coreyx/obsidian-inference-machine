@@ -42,6 +42,11 @@ export interface VariableOptions {
 	now: Date;
 	/** The main AI output body. Left out for prompt and context rendering. */
 	output?: string;
+	/**
+	 * In a selection run, keeps the whole note in `{{content}}` and `{{body}}`.
+	 * Set when the template uses `{{selection}}`, so it can read both (Q64).
+	 */
+	wholeNote?: boolean;
 }
 
 function pad(n: number): string {
@@ -81,12 +86,17 @@ function templateValue(value: unknown): unknown {
  * Builds the variable map for rendering. A frontmatter key the note doesn't
  * have simply isn't in `properties`, and knap renders a missing value as
  * empty (6.0.3).
+ *
+ * In a selection run, `{{content}}` and `{{body}}` are the selected text, so
+ * templates written for whole notes work on the selection unchanged (Q56),
+ * unless `wholeNote` asks for the note itself (Q64).
  */
 export function buildVariables(note: NoteSnapshot, options: VariableOptions): Record<string, unknown> {
+	const selected = note.selection !== undefined && options.wholeNote !== true ? note.selection : undefined;
 	const variables: Record<string, unknown> = {
 		title: note.title,
-		content: note.content,
-		body: note.body,
+		content: selected ?? note.content,
+		body: selected ?? note.body,
 		frontmatter: note.frontmatterText,
 		properties: templateValue(note.properties),
 		path: note.path,
