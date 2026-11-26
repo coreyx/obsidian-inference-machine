@@ -3,13 +3,13 @@ import type { ChatRequest, ChatResult } from '../core/chat';
 import { composeNote, type ComposedNote } from '../core/compose';
 import { sanitizeFilename } from '../core/filename';
 import { answerMap, buildInlineRequest, collectTemplatePrompts, parseInlineResponse, unansweredNotice } from '../core/inline';
-import type { NoteSnapshot } from '../core/note';
+import { withSelection, type NoteSnapshot } from '../core/note';
 import type { ParseYaml, StringifyYaml } from '../core/output';
 import { resolveRunConfig, type PopupOverrides, type RunConfig } from '../core/resolve';
 import type { EngineConfig, Template } from '../core/schema';
 import type { DroppedTag } from '../core/tags/pipeline';
 import { buildTaggingRequest, MAX_VAULT_TAGS, requestAiTags } from '../core/tagging-request';
-import { render } from '../core/template/knap';
+import { render, usesSelection } from '../core/template/knap';
 import { buildMainPrompt } from '../core/template/prompt';
 import { buildVariables } from '../core/template/variables';
 import { outputLimitMessage, stripReasoning } from '../core/reasoning';
@@ -54,6 +54,8 @@ export interface RunInput {
 	sourcePath: string;
 	templateId: string;
 	popup: PopupOverrides;
+	/** The text selected for a selection run; absent, or blank, runs on the whole note (Q55). */
+	selection?: string;
 }
 
 /** The three requests a run can send (design decision 4). */
@@ -125,6 +127,11 @@ function droppedWarning(dropped: DroppedTag[]): string | undefined {
 	return `Tags left out: ${parts.join(', ')}.`;
 }
 
+/** Every field of a template that's rendered, as the run resolves them, for finding the variables it reads. */
+function templateFields(template: Template, config: RunConfig): string[] {
+	return [template.prompt ?? '', config.context, config.noteNameFormat, config.noteContentFormat, ...(template.properties ?? []).map((p) => p.value)];
+}
+
 /** Runs templates and saves their output. One controller runs one thing at a time. */
 export class RunController {
 	private token = 0;
@@ -174,7 +181,8 @@ export class RunController {
 		if (!source) throw new Error(`The source note "${input.sourcePath}" no longer exists. Pick another one.`);
 
 		const now = this.host.now?.() ?? new Date();
-		const note = await readNote(app, source);
+		const whole = await readNote(app, source);
+		const note = input.selection !== undefined && input.selection.trim() !== '' ? withSelection(whole, input.selection) : whole;
 		this.check(token);
 		const { config, notices: resolveNotices } = resolveRunConfig({
 			popup: input.popup,
@@ -190,7 +198,9 @@ export class RunController {
 		const notices = new Set(resolveNotices);
 		const addNotices = (list: string[]) => list.forEach((n) => notices.add(n));
 
-		const requests = await this.buildRequests(template, config, note, now, addNotices);
+		// Worked out once, so every field of the template sees the same `{{content}}` (Q64).
+		const wholeNote = note.selection !== undefined && usesSelection(templateFields(template, config));
+		const requests = await this.buildRequests(template, config, note, now, wholeNote, addNotices);
 		this.check(token);
 
 		let contextWindow = engineConfig.contextWindow;
@@ -301,6 +311,7 @@ export class RunController {
 			aiTags,
 			vaultTags: requests.vaultTags,
 			yaml: this.host.yaml,
+			wholeNote,
 		});
 		addNotices(composed.notices);
 		this.check(token);
@@ -332,8 +343,8 @@ export class RunController {
 	}
 
 	/** Builds the main, inline and tagging requests, each only when the template needs it. */
-	private async buildRequests(template: Template, config: RunConfig, note: NoteSnapshot, now: Date, addNotices: (n: string[]) => void) {
-		const variables = buildVariables(note, { templateName: template.name, now });
+	private async buildRequests(template: Template, config: RunConfig, note: NoteSnapshot, now: Date, wholeNote: boolean, addNotices: (n: string[]) => void) {
+		const variables = buildVariables(note, { templateName: template.name, now, ...(wholeNote ? { wholeNote } : {}) });
 		const renderPart = async (text: string) => {
 			const result = await render(text, variables);
 			addNotices(result.notices);

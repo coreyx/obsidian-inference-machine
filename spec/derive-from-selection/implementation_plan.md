@@ -71,7 +71,7 @@ Q64 A applies to TASK-3, and Q65 A to TASK-10.
 ### Running
 
 #### [MODIFY] `src/run/run-controller.ts`
-- [ ] **TASK-6:** `RunInput` gains `selection?: string`. After `readNote`, a non-blank selection is applied with `withSelection`.
+- [x] **TASK-6:** `RunInput` gains `selection?: string`. After `readNote`, a non-blank selection is applied with `withSelection`.
   - `wholeNote` is worked out once per run with `usesSelection`, over the resolved prompt, context, filename format, body format and property values. It's passed to every `buildVariables` call (prompt, context and compose), so all fields agree.
   - The long-note check works on what's actually sent, so a short selection from a long note no longer triggers it.
 
