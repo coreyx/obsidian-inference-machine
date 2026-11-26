@@ -1,5 +1,22 @@
 # Release notes
 
+## 0.4.0 (2026-11-25)
+
+The popup now remembers your choices as you make them, separately for each template. To update now, run **BRAT: Plugins: Check for updates to all beta plugins and UPDATE** from the command palette.
+
+### Choices that stick, per template
+
+Pick a template, an engine or an output location in the popup and it's saved straight away, even if you close the popup without running. The last template you chose is remembered for the whole vault. The engine and location are remembered for each template separately, so sending **Comprehensive summary** to LM Studio and a `Summaries` folder doesn't change where **Action items** goes. They come back however the template is picked: from the dropdown, from a **Derive with** command, or from a trigger. Template commands and triggers still choose the template first.
+
+### Going back to the template's settings
+
+When a template has a remembered engine or location, the popup shows **Use template settings**. Click it to forget both and use the template's own settings again. Changing a template's engine or location in its settings also resets what the popup remembered for it, so the new setting takes effect.
+
+### Worth knowing
+
+- Deleting a template or an engine forgets anything remembered for it. A template whose remembered engine is gone uses the default engine.
+- Before, the last location chosen in the popup applied to every template. That single location is gone, so after updating, each template starts from its own location until you change it in the popup.
+
 ## 0.3.0 (2026-11-24)
 
 New notes can now go in a folder inside the source note's folder. To update now, run **BRAT: Plugins: Check for updates to all beta plugins and UPDATE** from the command palette.

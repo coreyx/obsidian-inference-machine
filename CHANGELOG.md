@@ -4,6 +4,8 @@ All notable changes to Inference Machine are recorded here. The format follows [
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-25
+
 ### Added
 
 - **Use template settings:** a popup button that forgets the engine and location remembered for the current template, so its own settings apply again.
@@ -53,7 +55,8 @@ The first release, installable with BRAT.
 - Support for reasoning models: `<think>` working is removed from responses, the output limit is only sent when set (Anthropic gets 8,192), and an answer cut short by reasoning is reported as such.
 - For LM Studio engines, the context length the model is loaded with is shown in the engine's settings and used for the long-note warning, and an engine can load the model with its own context window before each run.
 
-[Unreleased]: https://github.com/coreyx/obsidian-inference-machine/compare/0.3.0...HEAD
+[Unreleased]: https://github.com/coreyx/obsidian-inference-machine/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/coreyx/obsidian-inference-machine/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/coreyx/obsidian-inference-machine/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/coreyx/obsidian-inference-machine/compare/0.1.1...0.2.0
 [0.1.1]: https://github.com/coreyx/obsidian-inference-machine/compare/0.1.0...0.1.1
