@@ -110,6 +110,9 @@ export class DeriveModal extends Modal {
 			return false;
 		});
 		this.renderSetup();
+		// The submenu runs its template straight away (Q55). When something is missing, such as an engine
+		// or a usable folder, the setup step stays open and already says what.
+		if (this.options.runNow && this.canRunSetup && this.locationValid) void this.run();
 	}
 
 	override onClose(): void {
