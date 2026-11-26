@@ -66,7 +66,7 @@ Q64 A applies to TASK-3, and Q65 A to TASK-10.
   A whole-note run is unchanged.
 
 #### [MODIFY] `src/core/compose.ts`
-- [ ] **TASK-5:** Look for leading images in `note.selection ?? note.body`, so a selection run carries only images at the start of the selection (Q56). Pass `wholeNote` through to `buildVariables` for the filename, properties and body wrapper.
+- [x] **TASK-5:** Look for leading images in `note.selection ?? note.body`, so a selection run carries only images at the start of the selection (Q56). Pass `wholeNote` through to `buildVariables` for the filename, properties and body wrapper.
 
 ### Running
 

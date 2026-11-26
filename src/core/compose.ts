@@ -29,6 +29,8 @@ export interface ComposeInput {
 	/** The vault's tags, most used first; empty unless AI tagging asked for them. */
 	vaultTags: readonly string[];
 	yaml: { parse: ParseYaml; stringify: StringifyYaml };
+	/** In a selection run, keeps the whole note in `{{content}}` and `{{body}}` because the template uses `{{selection}}` (Q64). */
+	wholeNote?: boolean;
 }
 
 /** The rendered note, waiting for its source link. */
@@ -91,7 +93,12 @@ export async function composeNote(input: ComposeInput): Promise<ComposedNote> {
 	const { config, note } = input;
 	const notices = new Set<string>();
 	const prepared = input.mainOutput === undefined ? { body: '', properties: {}, tags: [] } : prepareOutput(input.mainOutput, input.yaml.parse);
-	const variables = buildVariables(note, { templateName: config.template.name, now: input.now, output: prepared.body });
+	const variables = buildVariables(note, {
+		templateName: config.template.name,
+		now: input.now,
+		output: prepared.body,
+		...(input.wholeNote === true ? { wholeNote: true } : {}),
+	});
 
 	const renderField = async (template: string): Promise<string> => {
 		const result = await render(template, variables, input.answers);
@@ -121,7 +128,8 @@ export async function composeNote(input: ComposeInput): Promise<ComposedNote> {
 		fileName,
 		notices: [...notices],
 		dropped: tags.dropped,
-		leadingImages: config.carryImages ? findLeadingImages(note.body) : [],
+		// A selection run carries only the images at the start of the selection (Q56).
+		leadingImages: config.carryImages ? findLeadingImages(note.selection ?? note.body) : [],
 		assemble: ({ link, images = [] } = {}) =>
 			assembleNote({
 				body,
