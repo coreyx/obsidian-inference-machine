@@ -108,7 +108,7 @@ Q64 A applies to TASK-3, and Q65 A to TASK-10.
 - [x] **TASK-13:** Unit tests for the cases under Automated Tests, items 1 to 5.
 
 #### [NEW] `test/e2e/specs/selection.e2e.ts`
-- [ ] **TASK-14:** End-to-end scenarios in real Obsidian, for the cases under Automated Tests, items 6 to 9. The mock server's `/__requests` log is used to check what was sent.
+- [x] **TASK-14:** End-to-end scenarios in real Obsidian, for the cases under Automated Tests, items 6 to 9. The mock server's `/__requests` log is used to check what was sent.
 
 ## Verification Plan
 
