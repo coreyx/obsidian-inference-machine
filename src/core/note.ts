@@ -25,6 +25,21 @@ export interface NoteSnapshot {
 	/** Creation and modification times, in milliseconds since the epoch. */
 	ctime: number;
 	mtime: number;
+	/**
+	 * The text selected for a selection run, absent for a whole-note run.
+	 * Everything else in the snapshot is still the whole note's, so the
+	 * title, properties, tags and paths come from the source (Q56).
+	 */
+	selection?: string;
+}
+
+/**
+ * A copy of the snapshot for a run on selected text. Only `selection` is
+ * set: which variables read it is decided when they're built, so the rest of
+ * the note stays available to the template (Q56, Q64).
+ */
+export function withSelection(note: NoteSnapshot, text: string): NoteSnapshot {
+	return { ...note, selection: text };
 }
 
 /** The note's filename with its extension, such as `Alpha.md`. */

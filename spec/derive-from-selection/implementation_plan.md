@@ -51,7 +51,7 @@ Q64 A applies to TASK-3, and Q65 A to TASK-10.
 ### Core: the selection in a run
 
 #### [MODIFY] `src/core/note.ts`
-- [ ] **TASK-1:** Add `selection?: string` to `NoteSnapshot`, documented as the text selected for a selection run, absent for a whole-note run. Add a pure `withSelection(note, text): NoteSnapshot` that returns a copy with `selection` set. Every other field stays the whole note's, so title, properties, tags and paths keep coming from the source (Q56).
+- [x] **TASK-1:** Add `selection?: string` to `NoteSnapshot`, documented as the text selected for a selection run, absent for a whole-note run. Add a pure `withSelection(note, text): NoteSnapshot` that returns a copy with `selection` set. Every other field stays the whole note's, so title, properties, tags and paths keep coming from the source (Q56).
 
 #### [MODIFY] `src/core/template/variables.ts`
 - [ ] **TASK-2:** Add `'selection'` to `NOTE_VARIABLES`, so templates that use it aren't flagged as having an unknown variable. `buildVariables` sets `selection` to `note.selection ?? ''`.
