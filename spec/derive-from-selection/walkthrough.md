@@ -102,7 +102,12 @@ These steps cover what the tests can't: a real model, a phone, and hotkeys.
 6. On a phone, select text and open the editor's context menu, or run the command from the command palette. Expect the menu item, and check that the submenu opens and can be used. Only mobile emulation on the desktop is tested, and there only the command.
 7. Check the source note afterwards. Expect it unchanged.
 
+### Results (0.5.0, 2026-11-26)
+- **Desktop:** checked by the user on the 0.5.0 release, installed with BRAT. **Passed**
+- **Phone (step 6):** **not yet checked.** The right-click item and the **Derive selection with** submenu on mobile have only been tested by the command scenario in desktop mobile emulation. The submenu uses Obsidian's internal `setSubmenu`, so it's the most likely piece to behave differently on a phone. If it fails there, **Derive from selection** and the command still work.
+
 ## Follow-ups
+- **Check on a phone:** step 6 above is still open.
 - **The submenu relies on Obsidian internals:** if a future Obsidian removes `setSubmenu`, the templates are listed in the right-click menu itself. If a version keeps the method but changes how it behaves, the end-to-end submenu scenario should catch it.
 - **Reading view:** it has no editor selection, so nothing is offered there. Supporting it would mean reading the DOM selection and mapping it back to the note's text.
 - **Inline tags:** a selection run merges the whole note's tags, inline ones included (Q56). Taking inline tags only from the selection would be a small change, if wanted.
