@@ -89,7 +89,7 @@ Q64 A applies to TASK-3, and Q65 A to TASK-10.
 ### Entry points
 
 #### [MODIFY] `src/main.ts`
-- [ ] **TASK-10:** Register an `editor-menu` handler with `registerEvent`. It adds items when the editor has a non-blank selection and its file is a Markdown note:
+- [x] **TASK-10:** Register an `editor-menu` handler with `registerEvent`. It adds items when the editor has a non-blank selection and its file is a Markdown note:
   - **Derive from selection** (icon `sparkles`), in the plugin's own menu section: opens the popup with `selection`.
   - (Q65 A) **Derive selection with** (icon `sparkles`), with a submenu that lists every template by name. Picking one opens the popup with `templateId`, `selection` and `runNow: true`.
   - The submenu comes from `setSubmenu` when the item has it, reached through a typed check rather than an unchecked cast. Otherwise each template becomes its own **Derive selection with <name>** item in the same section.

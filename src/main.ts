@@ -1,4 +1,4 @@
-import { ButtonComponent, Notice, parseYaml, Plugin, stringifyYaml } from 'obsidian';
+import { ButtonComponent, MenuItem, Notice, parseYaml, Plugin, stringifyYaml, type Editor, type MarkdownFileInfo, type Menu } from 'obsidian';
 import type { EngineConfig } from './core/schema';
 import { createEngine } from './engines/factory';
 import type { Engine } from './engines/engine';
@@ -16,6 +16,28 @@ import { ExportModal, ImportModal } from './ui/template-transfer';
 /** The settings API Obsidian uses internally to open a plugin's tab; it isn't in the public typings. */
 interface AppSettings {
 	setting?: { open(): void; openTabById(id: string): void };
+}
+
+/** Obsidian's own submenus, which its plugin typings leave out (Q65). */
+interface SubmenuItem {
+	setSubmenu(): Menu;
+}
+
+/** Whether this Obsidian gives menu items submenus. If a later version drops it, the templates go in the menu itself. */
+function hasSubmenus(): boolean {
+	return typeof (MenuItem.prototype as Partial<SubmenuItem>).setSubmenu === 'function';
+}
+
+/**
+ * The note and text for a selection run, or undefined when there's nothing
+ * to run on: no selection, only whitespace, or an editor that isn't a
+ * Markdown note's, such as a canvas card (Q55).
+ */
+function selectionSource(editor: Editor, info: MarkdownFileInfo): { path: string; text: string } | undefined {
+	const text = editor.getSelection();
+	const file = info.file;
+	if (text.trim() === '' || !file || file.extension !== 'md') return undefined;
+	return { path: file.path, text };
 }
 
 /**
@@ -54,6 +76,7 @@ export default class InferenceMachinePlugin extends Plugin {
 		this.addRibbonIcon('sparkles', 'Open Inference Machine', () => this.openDerive());
 		// Obsidian shows this as "Inference Machine: Open".
 		this.addCommand({ id: 'open', name: 'Open', callback: () => this.openDerive() });
+		this.registerEvent(this.app.workspace.on('editor-menu', (menu, editor, info) => this.addSelectionItems(menu, editor, info)));
 		const templateCommands = new TemplateCommands(this, (templateId) => this.openDerive({ templateId }));
 		templateCommands.sync(this.store.data.templates);
 		this.register(this.store.onChange((data) => templateCommands.sync(data.templates)));
@@ -101,6 +124,44 @@ export default class InferenceMachinePlugin extends Plugin {
 			{ app: this.app, store: this.store, controller: this.controller, openSettings: () => this.openSettings() },
 			options,
 		).open();
+	}
+
+	/**
+	 * Adds the right-click items for selected text (Q55): "Derive from
+	 * selection", which opens the popup in selection mode, and "Derive
+	 * selection with", whose templates run straight away.
+	 */
+	private addSelectionItems(menu: Menu, editor: Editor, info: MarkdownFileInfo): void {
+		const selection = selectionSource(editor, info);
+		if (!selection) return;
+		const section = 'inference-machine';
+		menu.addItem((item) =>
+			item
+				.setTitle('Derive from selection')
+				.setIcon('sparkles')
+				.setSection(section)
+				.onClick(() => this.openDerive({ selection })),
+		);
+		const templates = this.store.data.templates;
+		if (templates.length === 0) return;
+		const run = (templateId: string) => this.openDerive({ templateId, selection, runNow: true });
+		if (hasSubmenus()) {
+			menu.addItem((item) => {
+				item.setTitle('Derive selection with').setIcon('sparkles').setSection(section);
+				const submenu = (item as MenuItem & SubmenuItem).setSubmenu();
+				for (const template of templates) submenu.addItem((sub) => sub.setTitle(template.name).onClick(() => run(template.id)));
+			});
+			return;
+		}
+		for (const template of templates) {
+			menu.addItem((item) =>
+				item
+					.setTitle(`Derive selection with ${template.name}`)
+					.setIcon('sparkles')
+					.setSection(section)
+					.onClick(() => run(template.id)),
+			);
+		}
 	}
 
 	/** Opens this plugin's settings tab. */
