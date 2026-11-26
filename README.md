@@ -53,6 +53,25 @@ The popup remembers your choices the moment you make them, even if you close it 
 
 A remembered choice wins over the template's own setting. To go back to the template's settings, click **Use template settings** in the popup. Changing a template's engine or location in its settings also resets what the popup remembered for it.
 
+## Deriving from selected text
+
+To run a template on part of a note, select the text in the editor and right-click it:
+
+- **Derive from selection** opens the popup with **Selection only** and a word count next to the source note. Pick the template, engine and location as usual. **Use whole note** goes back to the whole note.
+- **Derive selection with** lists your templates. Picking one runs it straight away, with that template's remembered engine and location. You still get the preview unless the template skips it.
+
+The **Inference Machine: Derive from selection** command does what the first item does, so you can give it a hotkey. It's only offered while text is selected.
+
+What the engine sees:
+
+- **The selection:** `{{content}}` and `{{body}}` hold the selected text, so every template works on a selection without editing. A prompt that doesn't place the note itself, like the built-in templates' prompts, is sent the filename, the note's frontmatter and the selected text. AI tagging describes the selection too.
+- **The whole note:** the title, properties, frontmatter, tags, path and folder are still the source note's. Its tags are merged and its properties copied as usual, the new note links back to it, and triggers match it as a whole.
+- **Images:** only images at the start of the selection are carried over.
+
+A template written for selections can use `{{selection}}`. A template that uses it anywhere keeps the whole note in `{{content}}` and `{{body}}`, so it can use both: for example, "Explain {{selection}} in the context of {{content}}".
+
+The result is always a new note. The source note isn't changed.
+
 ## Engines
 
 An engine is a provider, a model and its settings. You can save several, choose one as the default, set an engine per template, and switch engines in the popup for a single run.
@@ -147,8 +166,9 @@ When you open the popup, the first template in your list with a matching rule is
 | Variable | Value |
 |---|---|
 | `{{title}}` | The source note's filename, without `.md` |
-| `{{content}}` | The full note, frontmatter included |
-| `{{body}}` | The note without its frontmatter |
+| `{{content}}` | The full note, frontmatter included. When [deriving from selected text](#deriving-from-selected-text), the selection |
+| `{{body}}` | The note without its frontmatter. When deriving from selected text, the selection |
+| `{{selection}}` | The selected text when deriving from a selection, otherwise empty. A template that uses it keeps the whole note in `{{content}}` and `{{body}}` |
 | `{{frontmatter}}` | The frontmatter's YAML text |
 | `{{properties.author}}`, `{{properties["key with spaces"]}}` | One frontmatter value |
 | `{{path}}`, `{{folder}}` | The note's path and folder |

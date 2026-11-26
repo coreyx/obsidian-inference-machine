@@ -98,7 +98,7 @@ Q64 A applies to TASK-3, and Q65 A to TASK-10.
 ### Documentation
 
 #### [MODIFY] `README.md`
-- [ ] **TASK-12:** Add a **Deriving from selected text** section after **Getting started**. Also update the **Variables** table:
+- [x] **TASK-12:** Add a **Deriving from selected text** section after **Getting started**. Also update the **Variables** table:
   - **The section:** covers the right-click item, the submenu and the command, what comes from the selection and what from the whole note, and that the source isn't changed.
   - **Variables table:** adds `{{selection}}`, and says that in a selection run `{{content}}` and `{{body}}` hold the selection unless the template uses `{{selection}}` (Q64 A).
 
