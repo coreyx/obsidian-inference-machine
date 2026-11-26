@@ -1,45 +1,21 @@
 import { browser, expect } from '@wdio/globals';
-import { isMobileRun, MOCK_URL, openNote, openPopup, popup, popupButton, reset, snapshotData } from '../helpers';
-
-type PluginData = {
-	engines: { id: string; name: string; provider: string; model: string; baseUrl?: string }[];
-	templates: { id: string; name: string }[];
-	ui: { lastTemplateId?: string; templateChoices?: Record<string, { engineId?: string; location?: unknown }> };
-};
-
-/** The plugin's current data, read straight from its store. */
-async function pluginData(): Promise<PluginData> {
-	return browser.executeObsidian(({ app }) => {
-		const plugin = (app as unknown as { plugins: { plugins: Record<string, { store: { data: unknown } }> } }).plugins.plugins['inference-machine']!;
-		return JSON.parse(JSON.stringify(plugin.store.data)) as PluginData;
-	});
-}
-
-/** The id of a template, by name. */
-async function templateId(name: string): Promise<string> {
-	return (await pluginData()).templates.find((t) => t.name === name)!.id;
-}
-
-/** The popup's dropdowns, found by their options rather than their position. */
-const templateSelect = () => popup().$('select');
-const locationSelect = () => popup().$('select:has(option[value="folder"])');
-const engineSelect = () => popup().$('select:has(option[value="mock"])');
-const folderInput = () => popup().$('input[placeholder="Folder"]');
-
-/** Closes the popup with Esc, closing any folder suggestions first. */
-async function closePopup(): Promise<void> {
-	for (let i = 0; i < 3 && (await popup().isExisting()); i++) {
-		await browser.keys('Escape');
-		await browser.pause(150);
-	}
-	await popup().waitForExist({ reverse: true });
-}
-
-/** Opens the popup and waits for trigger matching to settle. */
-async function reopen(): Promise<void> {
-	await openPopup();
-	await browser.pause(400);
-}
+import {
+	closeRememberPopup as closePopup,
+	engineSelect,
+	folderInput,
+	isMobileRun,
+	locationSelect,
+	MOCK_URL,
+	openNote,
+	pluginData,
+	popupButton,
+	reopenPopup as reopen,
+	reset,
+	snapshotData,
+	templateId,
+	templateSelect,
+	type PluginData,
+} from '../helpers';
 
 /** Remembering the popup's choices (Q52 to Q54, Q61, Q62). */
 describe('Remembering popup choices', function () {

@@ -38,13 +38,17 @@ export async function snapshotData(): Promise<string> {
 	});
 }
 
-/** Closes any open modal, resets the vault's files, and restores the plugin data with the chosen engine. */
-export async function reset(snapshot: string, mode: EngineMode = 'cors', patch: DataPatch = {}): Promise<void> {
+/**
+ * Closes any open modal, resets the vault's files, and restores the plugin data with the chosen engine.
+ * Pass `resetFiles: false` in a spec that restarts Obsidian: `resetVault` deletes the vault's config
+ * folder, which the test vault doesn't have, so the plugin's data.json is gone when Obsidian restarts.
+ */
+export async function reset(snapshot: string, mode: EngineMode = 'cors', patch: DataPatch = {}, resetFiles = true): Promise<void> {
 	for (let i = 0; i < 4 && (await $('.modal-container').isExisting()); i++) {
 		await browser.keys('Escape');
 		await browser.pause(150);
 	}
-	await obsidianPage.resetVault();
+	if (resetFiles) await obsidianPage.resetVault();
 	const url = mode === 'no-cors' ? MOCK_NO_CORS_URL : MOCK_URL;
 	await browser.executeObsidian(
 		async ({ app }, snap, engineMode, engineUrl, change) => {
@@ -144,4 +148,47 @@ export async function fingerprint(path: string): Promise<{ text: string; mtime: 
 		const file = app.vault.getFileByPath(p)!;
 		return { text: await app.vault.read(file), mtime: file.stat.mtime };
 	}, path);
+}
+
+// --- Remembered popup choices ----------------------------------------------
+
+/** The parts of the plugin data the remembering specs read. */
+export type PluginData = {
+	engines: { id: string; name: string; provider: string; model: string; baseUrl?: string }[];
+	templates: { id: string; name: string }[];
+	ui: { lastTemplateId?: string; templateChoices?: Record<string, { engineId?: string; location?: unknown }> };
+};
+
+/** The plugin's current data, read straight from its store. */
+export async function pluginData(): Promise<PluginData> {
+	return browser.executeObsidian(({ app }) => {
+		const plugin = (app as unknown as { plugins: { plugins: Record<string, { store: { data: unknown } }> } }).plugins.plugins['inference-machine']!;
+		return JSON.parse(JSON.stringify(plugin.store.data)) as PluginData;
+	});
+}
+
+/** The id of a template, by name. */
+export async function templateId(name: string): Promise<string> {
+	return (await pluginData()).templates.find((t) => t.name === name)!.id;
+}
+
+/** The popup's dropdowns, found by their options rather than their position. */
+export const templateSelect = () => popup().$('select');
+export const locationSelect = () => popup().$('select:has(option[value="folder"])');
+export const engineSelect = () => popup().$('select:has(option[value="mock"])');
+export const folderInput = () => popup().$('input[placeholder="Folder"]');
+
+/** Closes the popup with Esc, closing any folder suggestions first. */
+export async function closeRememberPopup(): Promise<void> {
+	for (let i = 0; i < 3 && (await popup().isExisting()); i++) {
+		await browser.keys('Escape');
+		await browser.pause(150);
+	}
+	await popup().waitForExist({ reverse: true });
+}
+
+/** Opens the popup and waits for trigger matching to settle. */
+export async function reopenPopup(): Promise<void> {
+	await openPopup();
+	await browser.pause(400);
 }

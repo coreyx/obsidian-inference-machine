@@ -71,7 +71,17 @@ The old run-based 19.3 end-to-end scenario was removed, as planned. The new scen
 
 ## Manual Verification
 
-These steps cover what the end-to-end tests don't: two real engines, restarting Obsidian, and the command palette.
+Steps 1 to 8 below are now automated, in `test/e2e/specs/remember-restart.e2e.ts`, on the latest and earliest supported Obsidian. Both scenarios pass:
+- **Steps 1 to 7:** two engines, the **Derive with** command, a real restart of Obsidian, and deleting an engine with its Delete control in settings.
+- **Step 8:** a 0.3.0 `data.json` with a remembered location, loaded by restarting Obsidian.
+
+The restart scenarios have their own spec file, which never calls `resetVault`. The test vault has no config folder, so `resetVault` deletes the running vault's, the plugin's `data.json` included. The plugin carries on from memory, so the other specs aren't affected, but a restart would load no data.
+
+What the automation can't stand in for:
+- **A real model:** both engines point at the mock server.
+- **Picking the command from the palette:** the test runs the command by id.
+
+The steps stay here for checking by hand:
 
 1. With two engines set up (for example, a remote one and LM Studio), open the popup on any note and choose **Comprehensive summary**. Set **Engine** to LM Studio and **Output location** to **In a folder** `Summaries`. Press Esc without running.
 2. Open the popup again. Expect **Comprehensive summary**, LM Studio, `Summaries`, and a **Use template settings** button.
