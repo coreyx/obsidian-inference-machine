@@ -58,7 +58,7 @@ Q64 A applies to TASK-3, and Q65 A to TASK-10.
 - [x] **TASK-3:** (Q64 A) `VariableOptions` gains `wholeNote?: boolean`. In a selection run, `content` and `body` are the selection unless `wholeNote` is true. `frontmatter`, `properties` and the rest are unchanged. Add a pure `usesSelection(fields: string[]): boolean`, built on `referencedVariables` from `knap.ts`. It says whether any field uses `{{selection}}`.
 
 #### [MODIFY] `src/core/template/prompt.ts`
-- [ ] **TASK-4:** In `buildMainPrompt`, when the prompt doesn't use `{{content}}`, `{{body}}` or `{{selection}}` and the run is a selection run, add the following instead of the whole note:
+- [x] **TASK-4:** In `buildMainPrompt`, when the prompt doesn't use `{{content}}`, `{{body}}` or `{{selection}}` and the run is a selection run, add the following instead of the whole note:
   - `Filename: <name>`
   - the source's frontmatter block, if it has one
   - `Selected text:`, then the selection

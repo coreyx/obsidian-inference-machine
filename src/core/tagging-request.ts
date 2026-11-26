@@ -81,7 +81,12 @@ export function buildTaggingRequest(input: TaggingRequestInput): ChatRequest {
 
 	const sections = [`Rules:\n${rules.map((rule) => `- ${rule}`).join('\n')}`];
 	if (vaultTags.length > 0) sections.push(`Existing tags in this vault, most used first:\n${vaultTags.join('\n')}`);
-	sections.push(`The note, "${note.title}":\n\n${note.content}`);
+	// In a selection run the new note is about the selection, so that's what the tags describe (Q56).
+	sections.push(
+		note.selection === undefined
+			? `The note, "${note.title}":\n\n${note.content}`
+			: `Text selected from the note "${note.title}":\n\n${note.selection}`,
+	);
 	return { system: SYSTEM_PROMPT, user: sections.join('\n\n---\n\n') };
 }
 
