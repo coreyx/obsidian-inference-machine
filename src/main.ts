@@ -77,6 +77,17 @@ export default class InferenceMachinePlugin extends Plugin {
 		// Obsidian shows this as "Inference Machine: Open".
 		this.addCommand({ id: 'open', name: 'Open', callback: () => this.openDerive() });
 		this.registerEvent(this.app.workspace.on('editor-menu', (menu, editor, info) => this.addSelectionItems(menu, editor, info)));
+		// "Inference Machine: Derive from selection", offered only while text is selected, so it can have a hotkey (Q55).
+		this.addCommand({
+			id: 'derive-selection',
+			name: 'Derive from selection',
+			editorCheckCallback: (checking, editor, info) => {
+				const selection = selectionSource(editor, info);
+				if (!selection) return false;
+				if (!checking) this.openDerive({ selection });
+				return true;
+			},
+		});
 		const templateCommands = new TemplateCommands(this, (templateId) => this.openDerive({ templateId }));
 		templateCommands.sync(this.store.data.templates);
 		this.register(this.store.onChange((data) => templateCommands.sync(data.templates)));

@@ -93,7 +93,7 @@ Q64 A applies to TASK-3, and Q65 A to TASK-10.
   - **Derive from selection** (icon `sparkles`), in the plugin's own menu section: opens the popup with `selection`.
   - (Q65 A) **Derive selection with** (icon `sparkles`), with a submenu that lists every template by name. Picking one opens the popup with `templateId`, `selection` and `runNow: true`.
   - The submenu comes from `setSubmenu` when the item has it, reached through a typed check rather than an unchecked cast. Otherwise each template becomes its own **Derive selection with <name>** item in the same section.
-- [ ] **TASK-11:** Add a **Derive from selection** command (`derive-selection`) with `editorCheckCallback`. It's available only with a non-blank selection in a Markdown note, and does what the menu item does. Obsidian shows it as **Inference Machine: Derive from selection**.
+- [x] **TASK-11:** Add a **Derive from selection** command (`derive-selection`) with `editorCheckCallback`. It's available only with a non-blank selection in a Markdown note, and does what the menu item does. Obsidian shows it as **Inference Machine: Derive from selection**.
 
 ### Documentation
 
