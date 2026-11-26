@@ -4,6 +4,8 @@ All notable changes to Inference Machine are recorded here. The format follows [
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-26
+
 ### Added
 
 - **Derive from selected text:** select text in a note and right-click it. **Derive from selection** opens the popup on just that text, and **Derive selection with** lists your templates and runs one straight away, with its remembered engine and location. The **Inference Machine: Derive from selection** command does the same as the first item and can have a hotkey. The engine gets the selected text, and the new note keeps the source note's title, properties, tags and link back. Only images at the start of the selection are carried. The result is always a new note.
@@ -60,7 +62,8 @@ The first release, installable with BRAT.
 - Support for reasoning models: `<think>` working is removed from responses, the output limit is only sent when set (Anthropic gets 8,192), and an answer cut short by reasoning is reported as such.
 - For LM Studio engines, the context length the model is loaded with is shown in the engine's settings and used for the long-note warning, and an engine can load the model with its own context window before each run.
 
-[Unreleased]: https://github.com/coreyx/obsidian-inference-machine/compare/0.4.0...HEAD
+[Unreleased]: https://github.com/coreyx/obsidian-inference-machine/compare/0.5.0...HEAD
+[0.5.0]: https://github.com/coreyx/obsidian-inference-machine/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/coreyx/obsidian-inference-machine/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/coreyx/obsidian-inference-machine/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/coreyx/obsidian-inference-machine/compare/0.1.1...0.2.0

@@ -1,5 +1,28 @@
 # Release notes
 
+## 0.5.0 (2026-11-26)
+
+You can now run a template on just part of a note. To update now, run **BRAT: Plugins: Check for updates to all beta plugins and UPDATE** from the command palette.
+
+### Right-click selected text
+
+Select text in a note and right-click it:
+
+- **Derive from selection** opens the popup on just that text. Next to the source note it says **Selection only**, with a word count. Pick the template, engine and location as usual, or click **Use whole note** to go back to the whole note.
+- **Derive selection with** lists your templates. Pick one and it runs straight away, with that template's remembered engine and location. You still get the preview, unless the template skips it.
+
+**Inference Machine: Derive from selection** in the command palette does the same as the first item. It's only offered while text is selected, so you can give it a hotkey.
+
+### What the engine sees
+
+The engine gets the selected text instead of the whole note, and AI tagging describes the selection too. Your templates work on a selection as they are. The built-in templates also send the note's filename and frontmatter as context. The new note still gets the source note's properties and tags, links back to it, and is matched by triggers as before. Only images at the start of the selection are carried over.
+
+### Worth knowing
+
+- A new `{{selection}}` variable holds the selected text. A template that uses it keeps the whole note in `{{content}}` and `{{body}}`, so it can use both, as in "Explain {{selection}} in the context of {{content}}".
+- The result is always a new note. The source note isn't changed.
+- Selections are offered in Live Preview and Source mode, not in Reading view.
+
 ## 0.4.0 (2026-11-25)
 
 The popup now remembers your choices as you make them, separately for each template. To update now, run **BRAT: Plugins: Check for updates to all beta plugins and UPDATE** from the command palette.
