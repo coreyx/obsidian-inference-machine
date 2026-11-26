@@ -575,3 +575,59 @@ describe('inline prompts and AI tagging', () => {
 		expect(result.warnings).toContain('AI tagging failed, so the note has no AI tags. quota exceeded');
 	});
 });
+
+describe('deriving from selected text (Q55, Q56, Q64)', () => {
+	const SELECTED = 'We ship the beta next week.';
+	const start = (controller: RunController, selection: string, templateId = 'summary') =>
+		controller.start({ sourcePath: 'Projects/Alpha.md', templateId, popup: {}, selection });
+
+	it('sends only the selection, with the source\'s frontmatter, and keeps the source\'s tags, properties and link', async () => {
+		const { fake, engine, controller } = await setup();
+		const result = preview(await start(controller, SELECTED));
+		const sent = engine.received[0]!.request.user;
+		expect(sent).toBe(`Summarize this.\n\nFilename: Alpha.md\n\nFrontmatter:\n---\ntags: [Project]\nauthor: Ada\n---\n\nSelected text:\n\n${SELECTED}`);
+		expect(sent).not.toContain('# Alpha');
+		expect(sent).not.toContain('#launch');
+		// Tags still come from the whole note, inline ones included, and its properties are copied.
+		expect(YAML.parse(result.text.split('---')[1]!)).toEqual({ author: 'Ada', tags: ['Project', 'launch'] });
+		expect(result.text).toContain('- [[Alpha]]');
+		sourceUnchanged(fake);
+	});
+
+	it('runs on the whole note when the selection is blank', async () => {
+		const { engine, controller } = await setup();
+		await start(controller, '  \n ');
+		expect(engine.received[0]!.request.user).toBe(`Summarize this.\n\nFilename: Alpha.md\n\n${ALPHA}`);
+	});
+
+	it('carries only images at the start of the selection', async () => {
+		const source = '# Alpha\n\n![[cover.png]]\n\nIntro.\n\n## Part two\n\n![[diagram.png]]\n\nDetails here.\n';
+		const notes = { 'Projects/Alpha.md': source, 'Projects/cover.png': 'png', 'Projects/diagram.png': 'png' };
+		const outside = preview(await start((await setup({ notes })).controller, 'Details here.'));
+		expect(outside.text).not.toContain('cover.png');
+		const inside = preview(await start((await setup({ notes })).controller, '![[diagram.png]]\n\nDetails here.'));
+		expect(inside.text.startsWith('![[diagram.png]]')).toBe(true);
+		expect(inside.text).not.toContain('cover.png');
+	});
+
+	it('keeps the whole note in {{content}} for a template that uses {{selection}} (Q64 A)', async () => {
+		const template: Template = { id: 'explain', name: 'Explain', prompt: 'Explain «{{selection}}» given:\n{{body}}' };
+		const { engine, controller } = await setup({ templates: [template] });
+		await start(controller, SELECTED, 'explain');
+		const sent = engine.received[0]!.request.user;
+		expect(sent).toContain(`«${SELECTED}»`);
+		expect(sent).toContain('# Alpha');
+		expect(sent).not.toContain('Selected text:');
+	});
+
+	it('asks AI tagging about the selection, not the whole note', async () => {
+		const { engine, controller } = await setup({
+			data: (d) => (d.globalSettings.tagging.aiTagging = true),
+			responder: replies({ main: 'Body', tags: '{"tags":["shipping"]}' }),
+		});
+		await start(controller, SELECTED);
+		const tagsRequest = engine.received.find((r) => r.mode === 'complete')!.request.user;
+		expect(tagsRequest).toContain(`Text selected from the note "Alpha":\n\n${SELECTED}`);
+		expect(tagsRequest).not.toContain('# Alpha');
+	});
+});

@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULTS } from '../../../src/core/defaults';
-import { collectPrompts, diagnose, findPrompts, referencedVariables, render } from '../../../src/core/template/knap';
+import { collectPrompts, diagnose, findPrompts, referencedVariables, render, usesSelection } from '../../../src/core/template/knap';
 import { buildMainPrompt } from '../../../src/core/template/prompt';
 import { buildVariables, knownVariables } from '../../../src/core/template/variables';
+import { withSelection } from '../../../src/core/note';
 import { alpha } from '../../fixtures/notes';
 
 const now = new Date(2026, 9, 17, 8, 4, 0);
@@ -168,5 +169,54 @@ describe('buildMainPrompt (5.0.5)', () => {
 describe('default filename (5.5)', () => {
 	it('is "Alpha - Summary" for Projects/Alpha.md and template "Summary"', async () => {
 		expect(await text(DEFAULTS.noteNameFormat)).toBe('Alpha - Summary');
+	});
+});
+
+describe('selection runs (Q56, Q64)', () => {
+	const selected = withSelection(alpha, 'We ship the beta next week.');
+
+	it('puts the selection in {{content}}, {{body}} and {{selection}}, and keeps the rest of the note', async () => {
+		const v = buildVariables(selected, { templateName: 'Summary', now });
+		const out = (await render('{{content}}|{{body}}|{{selection}}|{{title}}|{{path}}|{{properties.author}}|{{frontmatter}}', v)).text;
+		expect(out).toBe('We ship the beta next week.|We ship the beta next week.|We ship the beta next week.|Alpha|Projects/Alpha.md|Ada|author: Ada\nstatus: active');
+	});
+
+	it('keeps the whole note in {{content}} and {{body}} for a template that uses {{selection}} (Q64 A)', async () => {
+		const v = buildVariables(selected, { templateName: 'Summary', now, wholeNote: true });
+		expect((await render('{{content}}', v)).text).toBe(alpha.content);
+		expect((await render('{{body}}', v)).text).toBe(alpha.body);
+		expect((await render('{{selection}}', v)).text).toBe('We ship the beta next week.');
+	});
+
+	it('leaves {{selection}} empty in a whole-note run, and ignores wholeNote there', async () => {
+		const v = buildVariables(alpha, { templateName: 'Summary', now, wholeNote: true });
+		expect((await render('[{{selection}}]', v)).text).toBe('[]');
+		expect((await render('{{content}}', v)).text).toBe(alpha.content);
+	});
+
+	it('knows {{selection}} in every field', () => {
+		for (const field of ['prompt', 'context', 'output'] as const) expect(knownVariables(field).has('selection')).toBe(true);
+		expect(diagnose('Explain {{selection}}', 'prompt')).toEqual([]);
+	});
+
+	it('spots {{selection}} in any field, through filters and logic', () => {
+		expect(usesSelection(['Summarize this.', '{{selection|upper}}'])).toBe(true);
+		expect(usesSelection(['{% if selection %}x{% endif %}'])).toBe(true);
+		expect(usesSelection(['{{content}}', '{{title}} - {{template}}', ''])).toBe(false);
+	});
+
+	it('adds the filename, frontmatter and labeled selection to a prompt that doesn\'t place the text', () => {
+		expect(buildMainPrompt('Summarize this.', 'Summarize this.', selected)).toBe(
+			'Summarize this.\n\nFilename: Alpha.md\n\nFrontmatter:\n---\nauthor: Ada\nstatus: active\n---\n\nSelected text:\n\nWe ship the beta next week.',
+		);
+		const bare = withSelection({ ...alpha, frontmatterText: '' }, 'Just this.');
+		expect(buildMainPrompt('Summarize this.', 'Summarize this.', bare)).toBe('Summarize this.\n\nFilename: Alpha.md\n\nSelected text:\n\nJust this.');
+	});
+
+	it('adds nothing to a prompt that places the text itself', () => {
+		expect(buildMainPrompt('Explain {{selection}}', 'Explain X', selected)).toBe('Explain X');
+		expect(buildMainPrompt('Summarize {{content}}', 'Summarize X', selected)).toBe('Summarize X');
+		// In a whole-note run, {{selection}} is empty, so the note is still added.
+		expect(buildMainPrompt('Explain {{selection}}', 'Explain ', alpha)).toBe(`Explain\n\nFilename: Alpha.md\n\n${alpha.content}`);
 	});
 });
