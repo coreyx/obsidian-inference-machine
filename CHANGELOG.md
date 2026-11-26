@@ -4,6 +4,11 @@ All notable changes to Inference Machine are recorded here. The format follows [
 
 ## [Unreleased]
 
+### Added
+
+- **Derive from selected text:** select text in a note and right-click it. **Derive from selection** opens the popup on just that text, and **Derive selection with** lists your templates and runs one straight away, with its remembered engine and location. The **Inference Machine: Derive from selection** command does the same as the first item and can have a hotkey. The engine gets the selected text, and the new note keeps the source note's title, properties, tags and link back. Only images at the start of the selection are carried. The result is always a new note.
+- **`{{selection}}` variable:** the selected text. In a selection run, `{{content}}` and `{{body}}` hold the selection, unless the template uses `{{selection}}`, which keeps them as the whole note so the template can use both.
+
 ## [0.4.0] - 2026-11-25
 
 ### Added
