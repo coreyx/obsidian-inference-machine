@@ -83,7 +83,7 @@ Q64 A applies to TASK-3, and Q65 A to TASK-10.
   - `runNow?: boolean`: start the run as soon as the popup opens.
 
   `prefill()` uses `selection.path` as the source when it's set, even if another note is active.
-- [ ] **TASK-8:** In selection mode, the **Source note** row shows `<path> · Selection only (<n> words)`, and gets a **Use whole note** button that leaves selection mode for this popup. Picking another note with **Change** also leaves selection mode. `run()` passes `selection.text` to `controller.start` while selection mode is on.
+- [x] **TASK-8:** In selection mode, the **Source note** row shows `<path> · Selection only (<n> words)`, and gets a **Use whole note** button that leaves selection mode for this popup. Picking another note with **Change** also leaves selection mode. `run()` passes `selection.text` to `controller.start` while selection mode is on.
 - [ ] **TASK-9:** With `runNow`, once setup is rendered, start the run if it could start: a source, a template and an engine, and a valid location. Otherwise stay on setup, which already shows why. A template chosen this way counts as picked (22.0.5), so triggers don't replace it.
 
 ### Entry points

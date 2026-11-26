@@ -242,19 +242,27 @@ export class DeriveModal extends Modal {
 				}).config
 			: undefined;
 
-		new Setting(el)
-			.setName('Source note')
-			.setDesc(this.source ? this.source.path : 'No note selected. Choose one to run.')
-			.addButton((b) =>
-				b.setButtonText(this.source ? 'Change' : 'Choose a note').onClick(() => {
-					new NoteSuggestModal(this.app, (file) => {
-						this.source = file;
-						this.renderSetup();
-						// 22.0.5: a new source note gets its own trigger match, unless the user chose a template.
-						void this.applyTriggers();
-					}).open();
+		const sourceSetting = new Setting(el).setName('Source note').setDesc(this.describeSource());
+		if (this.selection !== undefined) {
+			sourceSetting.addButton((b) =>
+				b.setButtonText('Use whole note').onClick(() => {
+					this.selection = undefined;
+					this.renderSetup();
 				}),
 			);
+		}
+		sourceSetting.addButton((b) =>
+			b.setButtonText(this.source ? 'Change' : 'Choose a note').onClick(() => {
+				new NoteSuggestModal(this.app, (file) => {
+					this.source = file;
+					// The selection belonged to the previous note.
+					this.selection = undefined;
+					this.renderSetup();
+					// 22.0.5: a new source note gets its own trigger match, unless the user chose a template.
+					void this.applyTriggers();
+				}).open();
+			}),
+		);
 
 		new Setting(el)
 			.setName('Template')
@@ -364,6 +372,14 @@ export class DeriveModal extends Modal {
 		this.updateRunButton();
 	}
 
+	/** The source note's path, marked "Selection only" with a word count in selection mode (Q55). */
+	private describeSource(): string {
+		if (!this.source) return 'No note selected. Choose one to run.';
+		if (this.selection === undefined) return this.source.path;
+		const words = this.selection.trim().split(/\s+/u).length;
+		return `${this.source.path} · Selection only (${words} ${words === 1 ? 'word' : 'words'})`;
+	}
+
 	/** Enables Run, and Mod+Enter, only when the setup is complete and the folder can be used. */
 	private updateRunButton(): void {
 		const ready = this.canRunSetup && this.locationValid;
@@ -393,7 +409,12 @@ export class DeriveModal extends Modal {
 		new Setting(el).addButton((b) => b.setButtonText('Cancel').onClick(() => this.ctx.controller.cancel()));
 
 		const outcome = await this.ctx.controller.start(
-			{ sourcePath: source.path, templateId: template.id, popup: this.popup() },
+			{
+				sourcePath: source.path,
+				templateId: template.id,
+				popup: this.popup(),
+				...(this.selection !== undefined ? { selection: this.selection } : {}),
+			},
 			{
 				onStatus: (name, status) => {
 					if (name === 'model') {
