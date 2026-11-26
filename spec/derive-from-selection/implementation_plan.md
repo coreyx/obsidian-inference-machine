@@ -78,7 +78,7 @@ Q64 A applies to TASK-3, and Q65 A to TASK-10.
 ### The popup
 
 #### [MODIFY] `src/ui/derive-modal.ts`
-- [ ] **TASK-7:** `DeriveOptions` gains two fields:
+- [x] **TASK-7:** `DeriveOptions` gains two fields:
   - `selection?: { path: string; text: string }`: the source note and the captured text.
   - `runNow?: boolean`: start the run as soon as the popup opens.
 

@@ -26,6 +26,13 @@ export interface DeriveContext {
 export interface DeriveOptions {
 	/** Set by a "Derive with …" command, which preselects its template (1.0.3). */
 	templateId?: string;
+	/**
+	 * Set by "Derive from selection": the note the text was selected in, and
+	 * the text as it was when the menu or command was used (Q55).
+	 */
+	selection?: { path: string; text: string };
+	/** Starts the run as soon as the popup opens, for the "Derive selection with" submenu (Q55). */
+	runNow?: boolean;
 }
 
 const PROVIDER_NAMES: Record<EngineConfig['provider'], string> = {
@@ -56,6 +63,8 @@ const STATUS_LABELS = { pending: 'Running…', done: 'Done', failed: 'Failed', s
  */
 export class DeriveModal extends Modal {
 	private source: TFile | null = null;
+	/** The selected text the run uses, while the popup is in selection mode (Q55). */
+	private selection: string | undefined;
 	private templateId: string | undefined;
 	/** The template to fall back on when no trigger matches: the last used, else the first (22.0.3). */
 	private fallbackTemplateId: string | undefined;
@@ -109,11 +118,15 @@ export class DeriveModal extends Modal {
 		this.contentEl.empty();
 	}
 
-	/** Fills the setup step from the active note and the remembered template (2.0.1, 22.0.3). */
+	/** Fills the setup step from the selection or the active note, and the remembered template (2.0.1, 22.0.3). */
 	private prefill(): void {
-		const active = this.app.workspace.getActiveFile();
+		// The selection's own note, which may not be the active one, such as in a pop-over editor.
+		const selected = this.options.selection;
+		const selectedFile = selected ? this.app.vault.getFileByPath(selected.path) : null;
+		const active = selectedFile ?? this.app.workspace.getActiveFile();
 		// 2.0.3: a PDF, canvas or other non-Markdown file leaves the source empty.
 		this.source = active && active.extension === 'md' ? active : null;
+		this.selection = selectedFile && this.source === selectedFile ? selected?.text : undefined;
 		const { templates, ui } = this.ctx.store.data;
 		const known = (id: string | undefined) => (id !== undefined && templates.some((t) => t.id === id) ? id : undefined);
 		this.fallbackTemplateId = known(ui.lastTemplateId) ?? templates[0]?.id;
